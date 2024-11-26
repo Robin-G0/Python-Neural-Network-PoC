@@ -1,0 +1,8 @@
+*.pyc
+*.nn
+*__pycache__/
+datasets/check/
+datasets/checkmate/
+datasets/nothing/
+datasets/stalemate/
+*_big.txt

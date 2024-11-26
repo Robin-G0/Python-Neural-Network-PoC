@@ -2,7 +2,11 @@ import json
 import numpy as np
 
 class NumpyEncoder(json.JSONEncoder):
-    """Custom JSON encoder for NumPy arrays."""
+    """
+    Custom JSON encoder for NumPy arrays.
+
+    This class extends the default JSON encoder to handle NumPy arrays.
+    """
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()  # Convert NumPy arrays to lists
@@ -12,6 +16,12 @@ def numpy_decoder(dct):
     """
     Custom JSON decoder for NumPy arrays.
     Converts lists back into NumPy arrays when appropriate.
+
+    Args:
+        dct: JSON dictionary to decode.
+
+    Returns:
+        The decoded JSON dictionary.
     """
     for key, value in dct.items():
         if isinstance(value, list):
@@ -44,6 +54,9 @@ def save_network(network, file_path):
     Args:
         network: Neural network structure.
         file_path: Path to save the network file.
+
+    Returns:
+        None
     """
     with open(file_path, 'w') as file:
         json.dump(network, file, cls=NumpyEncoder, indent=4)

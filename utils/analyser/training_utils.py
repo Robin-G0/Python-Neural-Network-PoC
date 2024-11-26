@@ -22,6 +22,18 @@ def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–
 def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, batch_size=72, updates_queue=None, stop_flag=None):
     """
     Trains the network with a progress bar and multithreading updates.
+
+    Args:
+        network: Neural network structure.
+        data: Training data in the form of (inputs, targets) tuples.
+        learning_rate: Learning rate for gradient descent.
+        epochs: Number of training epochs.
+        batch_size: Batch size for training.
+        updates_queue: Queue for sending updates to the main thread.
+        stop_flag: Event flag to stop training early.
+
+    Returns:
+        None
     """
     num_samples = len(data)
     total_batches = (num_samples + batch_size - 1) // batch_size
@@ -184,6 +196,9 @@ def update_weights(network, gradients, learning_rate, clip_value=1.0):
         gradients: Gradients for each layer.
         learning_rate: Learning rate for gradient descent.
         clip_value: Maximum allowed value for gradients.
+
+    Returns:
+        None
     """
     for i, (layer, grad) in enumerate(zip(network['layers'], gradients)):
         grad_weights = np.clip(grad['weights'], -clip_value, clip_value)

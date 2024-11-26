@@ -4,14 +4,26 @@ from pathlib import Path
 import sys
 
 class NumpyEncoder(json.JSONEncoder):
-    """Custom JSON encoder for NumPy arrays."""
+    """
+    Custom JSON encoder for NumPy arrays.
+    
+    This class extends the default JSON encoder to handle NumPy arrays.
+    """
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()  # Convert NumPy arrays to lists
         return super().default(obj)
 
 def parse_config(config_path):
-    """Parses a JSON configuration file for the network."""
+    """
+    Parses a JSON configuration file.
+    
+    Args:
+        config_path (str): The path to the configuration file.
+    
+    Returns:
+        dict: The configuration dictionary.
+    """
     try:
         with open(config_path, 'r') as file:
             return json.load(file)
@@ -23,13 +35,35 @@ def parse_config(config_path):
         sys.exit(1)
 
 def initialize_weights(units, previous_units, activation):
+    """
+    Initializes the weights for a layer in a neural network.
+    
+    Args:
+        units (int): The number of units in the layer.
+        previous_units (int): The number of units in the previous layer.
+        activation (str): The activation function for the layer.
+        
+    Returns:
+        np.ndarray: The initialized weights for the layer.
+    """
     if activation == "relu":
         return np.random.randn(units, previous_units) * np.sqrt(2 / previous_units)
     else:
         return np.random.randn(units, previous_units) * np.sqrt(1 / previous_units)
 
 def generate_network(config, network_id, output_dir, config_path):
-    """Generates a network and saves it as a file."""
+    """
+    Generates a network and saves it as a file.
+    
+    Args:
+        config (dict): The configuration dictionary for the network.
+        network_id (int): The unique identifier for the network.
+        output_dir (str): The directory to save the network file.
+        config_path (str): The path to the configuration file.
+        
+    Returns:
+        None
+    """
     input_size = config.get('input_size')
     layers = config.get('layers')
     if not input_size or not layers:

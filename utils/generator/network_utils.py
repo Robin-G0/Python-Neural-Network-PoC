@@ -41,7 +41,7 @@ def generate_network(config, network_id, output_dir, config_path):
         layer_structure = {
             # Initialize weights with a smaller variance
             "weights": (np.random.randn(layer['units'], previous_units) * np.sqrt(2 / previous_units)).tolist(),
-            "biases": np.zeros(layer['units']).tolist(),  # Initialize biases to 0
+            "biases": np.zeros(layer['units']).tolist(),
             "activation": layer["activation"]
         }
         network["layers"].append(layer_structure)

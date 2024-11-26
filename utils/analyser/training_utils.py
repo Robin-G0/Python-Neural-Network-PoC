@@ -19,10 +19,11 @@ def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–
     if current == total:
         print()
 
-def train_network_multithreaded(network, data, learning_rate=0.01, epochs=50, batch_size=64, updates_queue=None, stop_flag=None):
+def train_network_multithreaded(network, data, learning_rate=0.001, epochs=10, batch_size=72, updates_queue=None, stop_flag=None):
     """
     Trains the network with a progress bar and multithreading updates.
     """
+    print(f"Training data sample min: {np.min([inputs.min() for inputs, _ in data])}, max: {np.max([inputs.max() for inputs, _ in data])}")  # Debug
     num_samples = len(data)
     total_batches = (num_samples + batch_size - 1) // batch_size  # Ceiling division
     for epoch in range(epochs):
@@ -48,11 +49,11 @@ def train_network_multithreaded(network, data, learning_rate=0.01, epochs=50, ba
                 outputs = forward_pass(network, inputs)
 
                 # Compute loss and add regularization term
-                loss = compute_loss(outputs, targets) + regularization_term(network, 0.01)
+                loss = compute_loss(outputs, targets) + regularization_term(network, 0.001)
                 batch_loss += loss
 
                 # Backward pass
-                gradients = compute_gradients(network, outputs, targets, 0.01)
+                gradients = compute_gradients(network, outputs, targets, 0.001)
 
                 # Update weights
                 update_weights(network, gradients, learning_rate)
@@ -91,20 +92,26 @@ def forward_pass(network, inputs):
         Outputs of the network.
     """
     layer_input = inputs
-    for layer in network['layers']:
+    print(f"Forward Pass - Initial Input: {layer_input[:10]}... (truncated), Shape: {layer_input.shape}")
+    
+    for idx, layer in enumerate(network['layers']):
         weights = layer['weights']
         biases = layer['biases']
         activation = layer['activation']
-        
+
         # Calculate raw pre-activation outputs
         z = np.dot(weights, layer_input) + biases
-        
+        print(f"Layer {idx + 1}: z (pre-activation) min: {np.min(z)}, max: {np.max(z)}, shape: {z.shape}")
+
         # Store the raw outputs ('z') and the input to this layer
         layer['z'] = z
         layer['input'] = layer_input
 
         # Apply activation function
         layer_input = apply_activation(z, activation)
+        print(f"Layer {idx + 1}: output (post-activation) min: {np.min(layer_input)}, max: {np.max(layer_input)}, shape: {layer_input.shape}")
+
+    print(f"Forward Pass - Final Output: {layer_input[:10]}... (truncated), Shape: {layer_input.shape}")
     return layer_input
 
 def apply_activation(z, activation):
@@ -121,7 +128,6 @@ def apply_activation(z, activation):
     if activation == 'relu':
         return np.maximum(0, z)
     elif activation == 'softmax':
-        # Normalize to avoid overflow
         z -= np.max(z)  # Subtract max for numerical stability
         exp_z = np.exp(z)
         return exp_z / np.sum(exp_z, axis=0)
@@ -139,7 +145,9 @@ def compute_loss(outputs, targets):
     Returns:
         Loss value.
     """
-    return np.mean((outputs - targets) ** 2)
+    loss = np.mean((outputs - targets) ** 2)
+    print(f"Compute Loss - Loss: {loss:.4f}")  # Debug
+    return loss
 
 def compute_gradients(network, outputs, targets, regularization):
     """
@@ -156,7 +164,9 @@ def compute_gradients(network, outputs, targets, regularization):
     """
     gradients = []
     error = outputs - targets
-    for layer in reversed(network['layers']):
+    print(f"Gradients - Initial Error min: {error.min()}, max: {error.max()}")  # Debug
+
+    for i, layer in reversed(list(enumerate(network['layers']))):
         activation = layer['activation']
         weights = layer['weights']
 
@@ -169,13 +179,17 @@ def compute_gradients(network, outputs, targets, regularization):
             raise ValueError(f"Unsupported activation function: {activation}")
 
         delta = error * grad_activation
-
-        # Compute gradients for weights and biases
         grad_weights = np.outer(delta, layer['input']) + 2 * regularization * weights
         grad_biases = delta
-        gradients.insert(0, {'weights': grad_weights, 'biases': grad_biases})
 
-        # Propagate error backward
+        # Clip gradients to prevent exploding gradients
+        grad_weights = np.clip(grad_weights, -1.0, 1.0)
+        grad_biases = np.clip(grad_biases, -1.0, 1.0)
+
+        print(f"Layer {i + 1}: Grad Weights min: {grad_weights.min()}, max: {grad_weights.max()}")  # Debug
+        print(f"Layer {i + 1}: Grad Biases min: {grad_biases.min()}, max: {grad_biases.max()}")  # Debug
+
+        gradients.insert(0, {'weights': grad_weights, 'biases': grad_biases})
         error = np.dot(weights.T, delta)
 
     return gradients
@@ -190,14 +204,12 @@ def update_weights(network, gradients, learning_rate, clip_value=1.0):
         learning_rate: Learning rate for gradient descent.
         clip_value: Maximum allowed value for gradients.
     """
-    for layer, grad in zip(network['layers'], gradients):
-        # Clip gradients to prevent explosion
+    for i, (layer, grad) in enumerate(zip(network['layers'], gradients)):
         grad_weights = np.clip(grad['weights'], -clip_value, clip_value)
         grad_biases = np.clip(grad['biases'], -clip_value, clip_value)
-        
-        # Update weights and biases
         layer['weights'] -= learning_rate * grad_weights
         layer['biases'] -= learning_rate * grad_biases
+        print(f"Layer {i + 1}: Updated Weights min: {layer['weights'].min()}, max: {layer['weights'].max()}")  # Debug
 
 def regularization_term(network, regularization):
     """
@@ -210,7 +222,7 @@ def regularization_term(network, regularization):
     Returns:
         Regularization term.
     """
-    reg_term = 0
-    for layer in network['layers']:
-        reg_term += np.sum(layer['weights'] ** 2)
-    return regularization * reg_term
+    reg_term = sum(np.sum(layer['weights'] ** 2) for layer in network['layers'])
+    reg_term *= regularization
+    print(f"Regularization Term: {reg_term:.4f}")  # Debug
+    return reg_term

@@ -14,9 +14,9 @@ def main(args):
         sys.exit(1)
 
     mode = args[1]
-    curve_enabled = '+curve' in args
-    load_file = args[args.index('+curve') + 1 if curve_enabled else 2]
-    input_file = args[args.index('+curve') + 2 if curve_enabled else 3]
+    curve_enabled = '+curve' in args and args.index('+curve') == args.index('--train') + 1
+    load_file = args[args.index('--train') + 2 if curve_enabled else 2]
+    input_file = args[args.index('--train') + 3 if curve_enabled else 3]
     save_file = args[args.index('--save') + 1] if '--save' in args else load_file
 
     # Load the network
@@ -42,6 +42,8 @@ def main(args):
         except ValueError as e:
             print(f"Error parsing line {idx + 1}: {e}")
             continue
+    for i, (inputs, label) in enumerate(data[:5]):  # Print first 5 samples
+        print(f"Sample {i + 1}: Inputs (normalized): {inputs[:10]}... Label: {label}")
 
     if mode == '--train':
         print("Training mode...")
@@ -73,9 +75,9 @@ def main(args):
             target=train_network_multithreaded,
             args=(network, training_data),
             kwargs={
-                'learning_rate': 0.01,
-                'epochs': 50,
-                'batch_size': 64,
+                'learning_rate': 0.001,
+                'epochs': 10,
+                'batch_size': 72,
                 'updates_queue': updates_queue,
                 'stop_flag': stop_flag
             }

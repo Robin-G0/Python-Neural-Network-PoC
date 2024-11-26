@@ -44,17 +44,22 @@ def parse_fullmove_number(fullmove_number):
     """Converts the fullmove number to an integer."""
     return int(fullmove_number)
 
+def normalize_fen_vector(fen_vector):
+    """Normalize the FEN feature vector."""
+    # Convert to float to avoid casting issues during normalization
+    fen_vector = fen_vector.astype(np.float64)
+
+    # Normalize board state (first 64 values)
+    fen_vector[:64] /= 6
+    # Normalize en passant (70th value)
+    fen_vector[69] /= 63
+    # Normalize halfmove clock and fullmove number (71st and 72nd values)
+    fen_vector[70] /= 100
+    fen_vector[71] /= 100
+    return fen_vector
+
 def parse_fen(fen):
-    """
-    Parses a FEN string into a feature vector.
-    The output vector includes:
-    - Flattened board state
-    - Active color
-    - Castling availability
-    - En passant target square
-    - Halfmove clock
-    - Fullmove number
-    """
+    """Parses a FEN string into a normalized feature vector."""
     parts = fen.strip().split(' ')
     if len(parts) != 6:
         raise ValueError("Invalid FEN string: Must contain exactly 6 fields.")
@@ -66,8 +71,8 @@ def parse_fen(fen):
     halfmove_clock = parse_halfmove_clock(parts[4])
     fullmove_number = parse_fullmove_number(parts[5])
 
-    # Combine all features into a single vector
-    return np.concatenate([
+    # Combine all features
+    fen_vector = np.concatenate([
         piece_placement,
         [active_color],
         castling_availability,
@@ -75,3 +80,7 @@ def parse_fen(fen):
         [halfmove_clock],
         [fullmove_number]
     ])
+
+    # Normalize the feature vector
+    return normalize_fen_vector(fen_vector)
+

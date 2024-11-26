@@ -19,64 +19,46 @@ def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–
     if current == total:
         print()
 
-def train_network_multithreaded(network, data, learning_rate=0.001, epochs=10, batch_size=72, updates_queue=None, stop_flag=None):
+def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, batch_size=72, updates_queue=None, stop_flag=None):
     """
     Trains the network with a progress bar and multithreading updates.
     """
-    print(f"Training data sample min: {np.min([inputs.min() for inputs, _ in data])}, max: {np.max([inputs.max() for inputs, _ in data])}")  # Debug
     num_samples = len(data)
-    total_batches = (num_samples + batch_size - 1) // batch_size  # Ceiling division
+    total_batches = (num_samples + batch_size - 1) // batch_size
+
     for epoch in range(epochs):
         if stop_flag and stop_flag.is_set():
-            print("Training stopped.")
             break
 
-        np.random.shuffle(data)  # Shuffle data for better generalization
-        epoch_loss = 0
-        correct_predictions = 0
+        np.random.shuffle(data)
+        epoch_loss, correct_predictions = 0, 0
 
-        print(f"Epoch {epoch + 1}/{epochs}:")
         for i, start_idx in enumerate(range(0, num_samples, batch_size)):
             if stop_flag and stop_flag.is_set():
-                print("\nTraining stopped during batch.")
                 break
 
             batch = data[start_idx:start_idx + batch_size]
             batch_loss = 0
 
             for inputs, targets in batch:
-                # Forward pass
                 outputs = forward_pass(network, inputs)
+                loss = compute_loss(outputs, targets)
+                gradients = compute_gradients(network, outputs, targets, regularization=0.001)
 
-                # Compute loss and add regularization term
-                loss = compute_loss(outputs, targets) + regularization_term(network, 0.001)
+                # Update weights with scaled learning rate
+                update_weights(network, gradients, learning_rate / (1 + epoch * 0.01))
+
                 batch_loss += loss
-
-                # Backward pass
-                gradients = compute_gradients(network, outputs, targets, 0.001)
-
-                # Update weights
-                update_weights(network, gradients, learning_rate)
-
-                # Track accuracy
-                if np.argmax(outputs) == targets:
+                if np.argmax(outputs) == np.argmax(targets):
                     correct_predictions += 1
 
             epoch_loss += batch_loss / len(batch)
 
-            # Update progress bar
-            print_progress_bar(i + 1, total_batches, prefix="Batch Progress", suffix="Complete")
-
-            # Send batch update to the queue
             if updates_queue:
-                batch_accuracy = correct_predictions / num_samples
-                updates_queue.put((epoch_loss / (i + 1), batch_accuracy))
+                updates_queue.put((epoch_loss / (i + 1), correct_predictions / num_samples))
 
         epoch_loss /= num_samples
         epoch_accuracy = correct_predictions / num_samples
-        print(f"Epoch {epoch + 1}/{epochs} - Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.4f}")
-
-        # Send epoch update to the queue
         if updates_queue:
             updates_queue.put((epoch_loss, epoch_accuracy))
 
@@ -136,58 +118,57 @@ def apply_activation(z, activation):
 
 def compute_loss(outputs, targets):
     """
-    Computes the loss between the network's outputs and the targets.
+    Computes the cross-entropy loss.
 
     Args:
-        outputs: Outputs from the network.
-        targets: Expected targets.
+        outputs: Predicted outputs of the network.
+        targets: Target labels.
 
     Returns:
-        Loss value.
+        Cross-entropy loss.
     """
-    loss = np.mean((outputs - targets) ** 2)
-    print(f"Compute Loss - Loss: {loss:.4f}")  # Debug
-    return loss
+    epsilon = 1e-7  # Prevent log(0)
+    outputs = np.clip(outputs, epsilon, 1 - epsilon)
+    if isinstance(targets, int):
+        # Convert to one-hot encoding if targets are integers
+        one_hot_targets = np.eye(outputs.shape[0])[targets]
+        return -np.sum(one_hot_targets * np.log(outputs)) / outputs.shape[0]
+    return -np.sum(targets * np.log(outputs)) / targets.shape[0]
 
 def compute_gradients(network, outputs, targets, regularization):
     """
-    Computes gradients for backpropagation.
-
+    Computes the gradients for each layer in the network.
+    
     Args:
         network: Neural network structure.
-        outputs: Outputs from the network.
-        targets: Expected targets.
+        outputs: Outputs of the network.
+        targets: Target labels.
         regularization: L2 regularization coefficient.
-
+    
     Returns:
         Gradients for each layer.
     """
     gradients = []
     error = outputs - targets
-    print(f"Gradients - Initial Error min: {error.min()}, max: {error.max()}")  # Debug
 
     for i, layer in reversed(list(enumerate(network['layers']))):
+        if not isinstance(layer, dict):
+            raise TypeError(f"Expected layer to be a dict, but got {type(layer)}. Layer: {layer}")
+        
         activation = layer['activation']
         weights = layer['weights']
 
-        # Compute gradient of activation function
-        if activation == 'relu':
-            grad_activation = np.where(layer['z'] > 0, 1, 0)
-        elif activation == 'softmax':
-            grad_activation = np.ones_like(layer['z'])
-        else:
-            raise ValueError(f"Unsupported activation function: {activation}")
-
+        # Compute gradient of activation
+        grad_activation = np.where(layer['z'] > 0, 1, 0) if activation == 'relu' else 1
         delta = error * grad_activation
         grad_weights = np.outer(delta, layer['input']) + 2 * regularization * weights
         grad_biases = delta
 
-        # Clip gradients to prevent exploding gradients
-        grad_weights = np.clip(grad_weights, -1.0, 1.0)
+        # Normalize gradients
+        grad_norm = np.linalg.norm(grad_weights)
+        if grad_norm > 1.0:
+            grad_weights /= grad_norm
         grad_biases = np.clip(grad_biases, -1.0, 1.0)
-
-        print(f"Layer {i + 1}: Grad Weights min: {grad_weights.min()}, max: {grad_weights.max()}")  # Debug
-        print(f"Layer {i + 1}: Grad Biases min: {grad_biases.min()}, max: {grad_biases.max()}")  # Debug
 
         gradients.insert(0, {'weights': grad_weights, 'biases': grad_biases})
         error = np.dot(weights.T, delta)
@@ -226,3 +207,14 @@ def regularization_term(network, regularization):
     reg_term *= regularization
     print(f"Regularization Term: {reg_term:.4f}")  # Debug
     return reg_term
+
+def one_hot_encode(labels, num_classes):
+    """
+    Converts integer labels into one-hot encoded vectors.
+    Args:
+        labels: List or array of integer labels.
+        num_classes: Number of classes.
+    Returns:
+        One-hot encoded NumPy array.
+    """
+    return np.eye(num_classes)[labels]

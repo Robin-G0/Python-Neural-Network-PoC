@@ -4,7 +4,7 @@ import threading
 import queue
 from utils.analyser.network_loader import load_network, save_network
 from utils.analyser.fen_parser import parse_fen
-from utils.analyser.training_utils import train_network_multithreaded
+from utils.analyser.training_utils import train_network_multithreaded, one_hot_encode
 from utils.analyser.prediction_utils import predict, interpret_prediction
 
 
@@ -55,7 +55,8 @@ def main(args):
             "Check Black": 4,
             "Nothing": 5
         }
-        training_data = [(inputs, label_map[label]) for inputs, label in data]
+        num_classes = len(label_map)
+        training_data = [(inputs, one_hot_encode(label_map[label], num_classes)) for inputs, label in data]
 
         # Initialize learning curve if enabled
         curve = None
@@ -75,7 +76,7 @@ def main(args):
             target=train_network_multithreaded,
             args=(network, training_data),
             kwargs={
-                'learning_rate': 0.001,
+                'learning_rate': 0.005,
                 'epochs': 10,
                 'batch_size': 72,
                 'updates_queue': updates_queue,

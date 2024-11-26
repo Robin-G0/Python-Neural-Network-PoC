@@ -22,6 +22,12 @@ def parse_config(config_path):
         print(f"Error parsing JSON file '{config_path}': {e}")
         sys.exit(1)
 
+def initialize_weights(units, previous_units, activation):
+    if activation == "relu":
+        return np.random.randn(units, previous_units) * np.sqrt(2 / previous_units)
+    else:
+        return np.random.randn(units, previous_units) * np.sqrt(1 / previous_units)
+
 def generate_network(config, network_id, output_dir, config_path):
     """Generates a network and saves it as a file."""
     input_size = config.get('input_size')
@@ -39,11 +45,11 @@ def generate_network(config, network_id, output_dir, config_path):
     for i, layer in enumerate(layers):
         previous_units = input_size if i == 0 else layers[i-1]['units']
         layer_structure = {
-            # Initialize weights with a smaller variance
-            "weights": (np.random.randn(layer['units'], previous_units) * np.sqrt(2 / previous_units)).tolist(),
+            "weights": initialize_weights(layer['units'], previous_units, layer["activation"]).tolist(),
             "biases": np.zeros(layer['units']).tolist(),
             "activation": layer["activation"]
         }
+
         network["layers"].append(layer_structure)
 
     # Save the network with a .nn extension

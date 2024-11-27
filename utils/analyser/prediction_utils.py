@@ -63,11 +63,11 @@ def interpret_prediction(output):
     sorted_indices = np.argsort(output)[::-1]
 
     # Check priority
-    for idx in sorted_indices:
-        if idx in [0, 1]:  # Checkmate cases
-            return classes[idx]
-        elif idx in [3, 4]:  # Check cases
-            # Ensure no checkmate is present with higher probability
-            if 0 not in sorted_indices[:2] and 1 not in sorted_indices[:2]:
-                return classes[idx]
+    # for idx in sorted_indices:
+    #     if idx in [0, 1]:  # Checkmate cases
+    #         return classes[idx]
+    #     elif idx in [3, 4]:  # Check cases
+    #         # Ensure no checkmate is present with higher probability
+    #         if 0 not in sorted_indices[:2] and 1 not in sorted_indices[:2]:
+    #             return classes[idx]
     return classes[sorted_indices[0]]  # Default to the highest probability otherwise

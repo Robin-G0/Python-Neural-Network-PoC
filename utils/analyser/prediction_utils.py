@@ -70,4 +70,7 @@ def interpret_prediction(output):
     #         # Ensure no checkmate is present with higher probability
     #         if 0 not in sorted_indices[:2] and 1 not in sorted_indices[:2]:
     #             return classes[idx]
-    return classes[sorted_indices[0]]  # Default to the highest probability otherwise
+    # Debug print of every class and its probability
+    for idx in sorted_indices:
+        print(f"{classes[idx]}: {output[idx]}")
+    return classes[sorted_indices[0]]

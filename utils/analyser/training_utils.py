@@ -19,6 +19,9 @@ def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–
     if current == total:
         print()
 
+def adjust_learning_rate(learning_rate, epoch, decay_rate=0.5, decay_step=40):
+    return learning_rate * (decay_rate ** (epoch // decay_step))
+
 def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, batch_size=72, updates_queue=None, stop_flag=None):
     """
     Trains the network with a progress bar and multithreading updates.
@@ -39,6 +42,8 @@ def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, b
     total_batches = (num_samples + batch_size - 1) // batch_size
 
     for epoch in range(epochs):
+        current_lr = adjust_learning_rate(learning_rate, epoch)
+        print(f"Epoch {epoch + 1}/{epochs} - Learning Rate: {current_lr:.6f}")
         if stop_flag and stop_flag.is_set():
             break
 
@@ -58,7 +63,7 @@ def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, b
                 gradients = compute_gradients(network, outputs, targets, regularization=0.001)
 
                 # Update weights with scaled learning rate
-                update_weights(network, gradients, learning_rate / (1 + epoch * 0.01))
+                update_weights(network, gradients, current_lr)
 
                 batch_loss += loss
                 if np.argmax(outputs) == np.argmax(targets):
@@ -86,7 +91,7 @@ def forward_pass(network, inputs):
         Outputs of the network.
     """
     layer_input = inputs
-    print(f"Forward Pass - Initial Input: {layer_input[:10]}... (truncated), Shape: {layer_input.shape}")
+    # print(f"Forward Pass - Initial Input: {layer_input[:10]}... (truncated), Shape: {layer_input.shape}") # Debug
     
     for idx, layer in enumerate(network['layers']):
         weights = layer['weights']
@@ -95,7 +100,7 @@ def forward_pass(network, inputs):
 
         # Calculate raw pre-activation outputs
         z = np.dot(weights, layer_input) + biases
-        print(f"Layer {idx + 1}: z (pre-activation) min: {np.min(z)}, max: {np.max(z)}, shape: {z.shape}")
+        # print(f"Layer {idx + 1}: z (pre-activation) min: {np.min(z)}, max: {np.max(z)}, shape: {z.shape}") # Debug
 
         # Store the raw outputs ('z') and the input to this layer
         layer['z'] = z
@@ -103,9 +108,9 @@ def forward_pass(network, inputs):
 
         # Apply activation function
         layer_input = apply_activation(z, activation)
-        print(f"Layer {idx + 1}: output (post-activation) min: {np.min(layer_input)}, max: {np.max(layer_input)}, shape: {layer_input.shape}")
+        # print(f"Layer {idx + 1}: output (post-activation) min: {np.min(layer_input)}, max: {np.max(layer_input)}, shape: {layer_input.shape}") # Debug
 
-    print(f"Forward Pass - Final Output: {layer_input[:10]}... (truncated), Shape: {layer_input.shape}")
+    # print(f"Forward Pass - Final Output: {layer_input[:10]}... (truncated), Shape: {layer_input.shape}") # Debug
     return layer_input
 
 def apply_activation(z, activation):
@@ -181,6 +186,7 @@ def compute_gradients(network, outputs, targets, regularization):
         if grad_norm > 1.0:
             grad_weights /= grad_norm
         grad_biases = np.clip(grad_biases, -1.0, 1.0)
+        grad_weights = np.clip(grad_weights, -1.0, 1.0)
 
         gradients.insert(0, {'weights': grad_weights, 'biases': grad_biases})
         error = np.dot(weights.T, delta)
@@ -205,7 +211,7 @@ def update_weights(network, gradients, learning_rate, clip_value=1.0):
         grad_biases = np.clip(grad['biases'], -clip_value, clip_value)
         layer['weights'] -= learning_rate * grad_weights
         layer['biases'] -= learning_rate * grad_biases
-        print(f"Layer {i + 1}: Updated Weights min: {layer['weights'].min()}, max: {layer['weights'].max()}")  # Debug
+        # print(f"Layer {i + 1}: Updated Weights min: {layer['weights'].min()}, max: {layer['weights'].max()}")  # Debug
 
 def regularization_term(network, regularization):
     """

@@ -20,6 +20,18 @@ def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–
         print()
 
 def adjust_learning_rate(learning_rate, epoch, decay_rate=0.5, decay_step=40):
+    """
+    Adjusts the learning rate based on the epoch number.
+
+    Args:
+        learning_rate: Initial learning rate.
+        epoch: Current epoch number.
+        decay_rate: Rate of decay.
+        decay_step: Step size for decay.
+
+    Returns:
+        Adjusted learning rate.
+    """
     return learning_rate * (decay_rate ** (epoch // decay_step))
 
 def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, batch_size=72, updates_queue=None, stop_flag=None):
@@ -70,6 +82,7 @@ def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, b
                     correct_predictions += 1
 
             epoch_loss += batch_loss / len(batch)
+            print_progress_bar(i + 1, total_batches, prefix='Progress:', suffix=f'Loss: {batch_loss / len(batch):.4f} / Accuracy: {correct_predictions / num_samples:.4f}')
 
             if updates_queue:
                 updates_queue.put((epoch_loss / (i + 1), correct_predictions / num_samples))

@@ -7,7 +7,6 @@ from utils.analyser.fen_parser import parse_fen
 from utils.analyser.training_utils import train_network_multithreaded, one_hot_encode
 from utils.analyser.prediction_utils import predict, interpret_prediction
 
-
 def main(args):
     if len(args) < 3 or (args[1] not in ['--train', '--predict']):
         print("USAGE: ./my_torch_analyzer [--predict | --train [+curve] [--save SAVEFILE]] LOADFILE FILE")
@@ -74,8 +73,8 @@ def main(args):
             target=train_network_multithreaded,
             args=(network, training_data),
             kwargs={
-                'learning_rate': 0.001,
-                'epochs': 50,
+                'learning_rate': 0.0005,
+                'epochs': 10,
                 'batch_size': 128,
                 'updates_queue': updates_queue,
                 'stop_flag': stop_flag
@@ -105,11 +104,10 @@ def main(args):
             print("\nTraining interrupted. Stopping...")
             stop_flag.set()  # Signal training thread to stop
             training_thread.join()
-            if curve_enabled and curve:
-                print("Saving interrupted progress...")
-                interrupted_save_file = save_file.replace('.nn', '_interrupted.nn')
-                save_network(network, interrupted_save_file)
-                print(f"Progress saved to {interrupted_save_file}")
+            print("Saving interrupted progress...")
+            interrupted_save_file = save_file.replace('.nn', '_interrupted.nn')
+            save_network(network, interrupted_save_file)
+            print(f"Progress saved to {interrupted_save_file}")
             sys.exit(1)
 
     elif mode == '--predict':

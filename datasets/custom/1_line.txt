@@ -1,15 +1,11 @@
-1k2n3/7p/1K3pp1/3B4/1PP5/7P/5PP1/8 b - - 0 37 Nothing
-8/1pB5/1Pk5/4Kn2/8/1B5p/6bP/8 b - - 8 60 Nothing
-8/K1k3p1/P6p/5p2/1q5P/5P2/6P1/8 w - - 1 48 Nothing
-8/8/2R1p3/4Pp2/5P2/5kPp/7P/5K2 b - - 2 40 Nothing
-2r3k1/pp3r2/3p1p1p/3Nn3/4P1P1/1Q5P/P1q5/5R1K w - - 0 31 Nothing
-8/5p1R/4p3/4P3/5k2/5P1p/6PK/r7 b - - 1 54 Nothing
-8/4p1k1/4P3/5B2/5rP1/1R6/5p1r/2N2K2 w - - 2 59 Nothing
-8/5p2/6p1/8/1pp1k1PP/2pr4/P3K3/2R5 w - - 0 64 Nothing
-6k1/4r1b1/b3p1R1/3pP1N1/1p1P4/r3B3/6P1/4R2K w - - 0 38 Nothing
-6k1/pp2rp2/6p1/3pq3/1P2P2R/PBr3P1/6K1/3Q4 b - - 2 34 Nothing
-5r1k/8/8/3Np3/4n3/3Q2pP/5pP1/5B1K b - - 2 50 Nothing
-8/4k2p/4p1p1/2n2p2/2PRpP2/8/1K4PP/r7 w - - 0 31 Nothing
-r7/p1pr3k/1pb1BPp1/6B1/8/2P2P2/PP2K1P1/8 w - - 0 25 Nothing
-5rk1/5q1p/1pp1N1p1/p2rQ1P1/P7/1P5P/2P3PK/8 w - - 2 41 Nothing
-r6k/1b5p/pq2B1p1/1p1p4/3N4/5P2/PQ4PP/4R1K1 b - - 0 25 Nothing
+2r5/1p1r2kp/6p1/p1nPQ3/Pn5R/1qN3P1/1P1R1PKP/8 b - - 0 31 Check White
+8/1Q4b1/p4qpk/P6p/4Bp2/1P6/4b1PP/3R3K w - - 1 50 Nothing
+r1r3k1/3b1p2/3p3P/ppnPp1qn/4P3/8/PP1B1PN1/RB2R1K1 w - - 0 31 Nothing
+2r2rk1/p4pbp/1Pn3p1/3qp3/Q2p4/3N2PP/PP2PPK1/2RRB3 w - - 1 29 Check Black
+2R2rk1/6bp/p2R1pp1/1b2p1N1/1P2Pn2/P3N2P/1B3PP1/6K1 b - - 0 31 Nothing
+bk6/p2q3p/Pb3pp1/1N6/1R6/5rP1/2Q3PP/7K w - - 0 31 Nothing
+8/8/pr1p3k/3Pppnp/1pP1P3/2KN3b/8/R6B w - - 0 37 Check Black
+3r1rk1/pp4pp/4p3/1qPn4/4N3/4Kn2/P2B1P1P/2RQ1B1R w - - 10 21 Checkmate Black
+r7/1pP2R1k/1b6/p3p1p1/P3P1p1/2N2P2/1P4P1/5R1K b - - 0 26 Check White
+7r/1R3kn1/8/R2Pp3/4Pp2/5P2/3K4/8 b - - 4 53 Check White
+1n1Qkb1r/5ppp/4b3/3n4/1pN5/5P2/1P1B2PP/4KBNR b Kk - 0 16 Check White

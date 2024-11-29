@@ -6,4 +6,6 @@ datasets/checkmate/
 datasets/nothing/
 datasets/stalemate/
 datasets/originals/
+datasets/custom/subfiles/
 *_big.txt
+notes.txt

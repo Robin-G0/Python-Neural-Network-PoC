@@ -147,4 +147,3 @@ def parse_fen(fen):
 
     # Normalize the feature vector
     return normalize_fen_vector(fen_vector)
-

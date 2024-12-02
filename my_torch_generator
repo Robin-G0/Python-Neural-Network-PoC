@@ -8,7 +8,7 @@ def main(args):
         print("USAGE: ./my_torch_generator config_file_1 nb_1 [config_file_2 nb_2...]")
         sys.exit(1)
 
-    output_dir = "./networks"
+    output_dir = "./"
     Path(output_dir).mkdir(exist_ok=True)
     
     for i in range(1, len(args), 2):

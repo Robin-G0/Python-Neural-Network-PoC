@@ -5,13 +5,25 @@ import queue
 import sys
 
 def train_mode(networks, data, curve_enabled, save_file, spec):
+    """
+    Trains the neural networks using the provided data.
+
+    Args:
+        networks (dict): Dictionary of neural networks with their configurations.
+        data (list): List of tuples containing inputs and labels.
+        curve_enabled (bool): Whether to enable the learning curve.
+        save_file (str): Path to save the trained networks.
+        spec (int): Index of the network to train.
+    """
     print("Training mode...", file=sys.stderr)
     label_maps = get_label_map()
+    stop_flag = threading.Event()  # Shared stop flag
+
     if spec:
         network_indices = [spec - 1]
         print(f"Training only network {list(networks.keys())[spec - 1]}", file=sys.stderr)
     else:
-        network_indices = range(4)
+        network_indices = range(len(networks))
 
     for idx in network_indices:
         network_name = list(networks.keys())[idx]
@@ -29,7 +41,6 @@ def train_mode(networks, data, curve_enabled, save_file, spec):
 
         curve = None
         updates_queue = queue.Queue()
-        stop_flag = threading.Event()
 
         if curve_enabled:
             try:
@@ -43,8 +54,8 @@ def train_mode(networks, data, curve_enabled, save_file, spec):
             target=train_network_multithreaded,
             args=(network, training_data),
             kwargs={
-                'learning_rate': 0.001,
-                'epochs': 1,
+                'learning_rate': 0.01,
+                'epochs': 10,
                 'batch_size': 128,
                 'updates_queue': updates_queue,
                 'stop_flag': stop_flag
@@ -68,10 +79,8 @@ def train_mode(networks, data, curve_enabled, save_file, spec):
             networks[network_name] = network  # Update the trained network
         except KeyboardInterrupt:
             print("\nTraining interrupted. Stopping...", file=sys.stderr)
+            stop_flag.set()
             training_thread.join()
-            interrupted_save_file = save_file.replace('.nn', '_interrupted.nn')
-            save_combined_network(networks, interrupted_save_file)
-            print(f"Progress saved to {interrupted_save_file}", file=sys.stderr)
             sys.exit(84)
 
     save_combined_network(networks, save_file)

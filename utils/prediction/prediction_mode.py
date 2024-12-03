@@ -1,55 +1,70 @@
-from utils.prediction.prediction_utils import interpret_decision, predict
 import sys
-def predict_mode(networks, data):
+import numpy as np
+from utils.analyser.fen_parser import preprocess_fen
+from utils.prediction.prediction_utils import predict, interpret_decision
+
+def predict_mode(networks, input_file):
     """
-    Predicts outcomes for a dataset using all neural networks in sequence.
+    Predicts chessboard states using a chain of neural networks.
 
     Args:
-        networks (dict): Dictionary of the neural networks.
-        data (list): List of tuples (inputs, label), where inputs may be None if invalid.
+        networks (dict): Dictionary of neural networks with their configurations.
+        input_file (str): Path to the input file containing FEN strings and optional labels.
     """
-    print("Prediction mode...", file=sys.stderr)
+    print(f"Predicting chessboard states from: {input_file}", file=sys.stderr)
 
-    network_sequence = [
-        "something_vs_nothing",
-        "check_vs_stalemate",
-        "checkmate_vs_check",
-        "white_vs_black"
-    ]
+    with open(input_file, 'r') as file:
+        fen_lines = [line.strip() for line in file if line.strip()]
 
-    for current_input, expected_label in data:
-        if current_input is None:
-            # print(f"Skipping invalid FEN. Expected label: {expected_label}", file=sys.stderr)
-            # print("Invalid FEN")
-            # continue
-            print(f"Invalid FEN", file=sys.stderr)
-            sys.exit(84)
-        result_path = []
+    predictions = []
 
-        print(f"\nExpected: {expected_label if expected_label else 'Unknown'}", file=sys.stderr)
+    for idx, line in enumerate(fen_lines):
+        try:
+            parts = line.split(' ', maxsplit=6)
+            fen = ' '.join(parts[:6])
+            labels = parts[6:] if len(parts) > 6 else None
 
-        for network_name in network_sequence:
-            network = networks[network_name]
+            current_prediction = []
 
-            # Perform prediction
-            try:
-                output = predict(network, current_input)
-                prediction = round(output[0])  # Binary prediction: 0 or 1
-                result_path.append(prediction)
-            except Exception as e:
-                print(f"Error during prediction in {network_name}: {e}", file=sys.stderr)
-                break
+            # Something vs Nothing
+            inputs = preprocess_fen(fen, networks['something_vs_nothing']['input_features'])
+            something_result = predict(networks['something_vs_nothing'], inputs)
+            decision = int(something_result > 0.5)
+            current_prediction.append(decision)
 
-            print(f"Network: {network_name}, Output: {output}, Prediction: {prediction}", file=sys.stderr)
+            if decision == 1:
+                # Check vs Stalemate
+                inputs = preprocess_fen(fen, networks['check_vs_stalemate']['input_features'])
+                check_result = predict(networks['check_vs_stalemate'], inputs)
+                decision = int(check_result > 0.5)
+                current_prediction.append(decision)
 
-            # Stop if "Nothing" is predicted
-            if network_name == "something_vs_nothing" and prediction == 0:
-                print("Prediction stopped at Nothing.", file=sys.stderr)
-                break
+                if decision == 1:
+                    # Checkmate vs Check
+                    inputs = preprocess_fen(fen, networks['checkmate_vs_check']['input_features'])
+                    checkmate_result = predict(networks['checkmate_vs_check'], inputs)
+                    decision = int(checkmate_result > 0.5)
+                    current_prediction.append(decision)
 
-        # Interpret and display the final prediction
-        final_prediction = interpret_decision(result_path)
-        if expected_label:
-            print(f"Final Prediction: {final_prediction} | Expected: {expected_label}", file=sys.stderr)
-        else:
-            print(f"Final Prediction: {final_prediction}", file=sys.stderr)
+            # White vs Black
+            inputs = preprocess_fen(fen, networks['white_vs_black']['input_features'])
+            color_result = predict(networks['white_vs_black'], inputs)
+            decision = int(color_result > 0.5)
+            current_prediction.append(decision)
+
+            print(f"Prediction: {current_prediction}", file=sys.stderr)
+
+            interpreted_result = interpret_decision(current_prediction)
+            predictions.append((fen, interpreted_result, labels))
+
+        except Exception as e:
+            print(f"Error processing FEN {idx + 1}: {e}", file=sys.stderr)
+
+    # Display results
+    for fen, result, labels in predictions:
+        print(f"FEN: {fen}", file=sys.stderr)
+        print("Prediction:", file=sys.stderr)
+        print(result)
+        if labels:
+            print("Expected Labels:", ' '.join(labels), file=sys.stderr)
+        print("", file=sys.stderr)

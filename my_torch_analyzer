@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
 import sys
 from utils.analyser.network_loader import load_combined_network
-from utils.analyser.fen_parser import parse_fen
+from utils.analyser.fen_parser import parse_fen, preprocess_fen
 from utils.training.training_mode import train_mode
 from utils.prediction.prediction_mode import predict_mode
 
 def parse_arguments(args):
-    """
-    Parses the command-line arguments.
-    Args:
-        args (list): List of command-line arguments.
-    Returns:
-        tuple: (mode, curve_enabled, load_file, input_file, save_file, spec)
-    """
     if len(args) < 3 or (args[1] not in ['--train', '--predict']):
         print("USAGE: ./my_torch_analyzer [--predict | --train [+curve] [--save SAVEFILE] [--spec N]] LOADFILE FILE", file=sys.stderr)
         sys.exit(84)
@@ -52,58 +45,45 @@ def parse_arguments(args):
 
     return mode, curve_enabled, load_file, input_file, save_file, spec
 
-def load_chessboards(input_file):
+def load_chessboards(input_file, input_features):
     print(f"Loading chessboards from: {input_file}", file=sys.stderr)
     with open(input_file, 'r') as file:
-        chessboards = file.readlines()
-    data = []
-    print(f"Processing {len(chessboards)} chessboards...", file=sys.stderr)
-    for idx, line in enumerate(chessboards):
-        try:
-            parts = line.strip().split(' ')
-            if len(parts) < 7:
-                raise ValueError("Line does not contain enough fields.")
-            fen_string = ' '.join(parts[:6])
-            label = ' '.join(parts[6:])
-            inputs = parse_fen(fen_string)
-            data.append((inputs, label))
-        except ValueError as e:
-            print(f"Error parsing line {idx + 1}: {e}", file=sys.stderr)
-    return data
+        lines = file.readlines()
 
-def load_prediction_chessboards(input_file):
-    print(f"Loading chessboards from: {input_file}", file=sys.stderr)
-    with open(input_file, 'r') as file:
-        chessboards = file.readlines()
     data = []
-    print(f"Processing {len(chessboards)} chessboards...", file=sys.stderr)
-    for idx, line in enumerate(chessboards):
+    print(f"Processing {len(lines)} chessboards...", file=sys.stderr)
+    for idx, line in enumerate(lines):
         try:
             parts = line.strip().split(' ')
             if len(parts) < 6:
                 raise ValueError(f"Invalid FEN or missing fields in line {idx + 1}: {line.strip()}")
+
             fen_string = ' '.join(parts[:6])
             label = ' '.join(parts[6:]) if len(parts) > 6 else None
-            inputs = parse_fen(fen_string)
+            inputs = preprocess_fen(fen_string, input_features)
+
+            if inputs.size == 0:
+                raise ValueError("Preprocessed input vector is empty.")
+            
             data.append((inputs, label))
         except ValueError as e:
             print(f"Skipping line {idx + 1}: {e}", file=sys.stderr)
-            data.append((None, None))
+
     return data
 
 def main(args):
     mode, curve_enabled, load_file, input_file, save_file, spec = parse_arguments(args)
     print(f"Loading networks from: {load_file}", file=sys.stderr)
     networks = load_combined_network(load_file)
-    if mode == '--train':
-        print(f"Loading chessboards from: {input_file}", file=sys.stderr)
-        data = load_chessboards(input_file)
-        train_mode(networks, data, curve_enabled, save_file, spec=None)
-    elif mode == '--predict':
-        print(f"Loading chessboards from: {input_file}", file=sys.stderr)
-        data = load_prediction_chessboards(input_file)
-        predict_mode(networks, data)
 
+    if mode == '--train':
+        for network_name, network in networks.items():
+            input_features = network["input_features"]
+            data = load_chessboards(input_file, input_features)
+            train_mode({network_name: network}, data, curve_enabled, save_file, spec)
+
+    elif mode == '--predict':
+        predict_mode(networks, input_file)
 
 if __name__ == "__main__":
     main(sys.argv)

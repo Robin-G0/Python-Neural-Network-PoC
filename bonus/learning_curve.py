@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import sys
+import signal
 from pathlib import Path
 from utils.analyser.network_loader import save_combined_network
+
 
 class LearningCurve:
     def __init__(self, save_file=None, networks=None, stop_flag=None):
@@ -20,7 +22,6 @@ class LearningCurve:
         self.networks = networks
         self.stop_flag = stop_flag
 
-        # Initialize matplotlib interactive plot
         plt.ion()
         self.fig, self.ax = plt.subplots()
         self.loss_line, = self.ax.plot([], [], label='Loss', color='blue')
@@ -31,6 +32,8 @@ class LearningCurve:
         self.ax.set_title('Learning Curve')
         self.fig.show()
 
+        signal.signal(signal.SIGINT, self.handle_interrupt)
+
     def update(self, loss, accuracy):
         """
         Updates the learning curve with the latest loss and accuracy values.
@@ -39,11 +42,13 @@ class LearningCurve:
             loss (float): Loss value for the current epoch.
             accuracy (float): Accuracy value for the current epoch.
         """
+        if self.stop_flag and self.stop_flag.is_set():
+            return
+
         self.losses.append(loss)
         self.accuracies.append(accuracy)
         self.current_epoch += 1
 
-        # Update plot data
         self.loss_line.set_data(range(1, self.current_epoch + 1), self.losses)
         self.accuracy_line.set_data(range(1, self.current_epoch + 1), self.accuracies)
         self.ax.relim()
@@ -56,8 +61,27 @@ class LearningCurve:
         """
         Finalizes the plot after training is complete.
         """
-        plt.ioff()  # Turn off interactive mode
+        plt.ioff()
         plt.show()
+
+    def handle_interrupt(self, signum, frame):
+        """
+        Handles interrupt signals (Ctrl+C) to stop training and save progress.
+
+        Args:
+            signum (int): Signal number.
+            frame (frame): Current stack frame.
+        """
+        print("\nInterrupt received. Stopping training...", file=sys.stderr)
+        if self.stop_flag:
+            self.stop_flag.set()
+        self.finalize()
+        plt.close('all')
+        if self.save_file and self.networks:
+            interrupted_save_file = self.save_file.replace('.nn', '_interrupted.nn')
+            save_combined_network(self.networks, interrupted_save_file)
+            print(f"Progress saved to {interrupted_save_file}", file=sys.stderr)
+        sys.exit(84)
 
     @staticmethod
     def compare_curves(curves, labels):

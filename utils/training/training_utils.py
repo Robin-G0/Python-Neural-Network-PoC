@@ -2,6 +2,9 @@ import numpy as np
 import sys
 
 def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–ˆ', print_end="\r"):
+    """
+    Print a progress bar to the console.
+    """
     percent = ("{0:.1f}").format(100 * (current / float(total)))
     filled_length = int(length * current // total)
     bar = fill * filled_length + '-' * (length - filled_length)
@@ -10,40 +13,44 @@ def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–
         print("", file=sys.stderr)
 
 def adjust_learning_rate(learning_rate, epoch, decay_rate=0.5, decay_step=40):
+    """
+    Adjusts the learning rate based on the current epoch.
+    """
     return learning_rate * (decay_rate ** (epoch // decay_step))
 
-def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, batch_size=72, updates_queue=None, stop_flag=None):
+def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, batch_size=500, updates_queue=None, stop_flag=None):
     """
-    Trains the network with multithreaded updates and displays progress.
+    Trains a neural network using mini-batch gradient descent.
 
     Args:
-        network: Neural network structure.
-        data: Training data in the form of (inputs, targets) tuples.
-        learning_rate: Learning rate for gradient descent.
-        epochs: Number of training epochs.
-        batch_size: Batch size for training.
-        updates_queue: Queue for sending updates to the main thread.
-        stop_flag: Event flag to stop training early.
+        network (dict): Dictionary containing the network configuration.
+        data (list): List of tuples containing inputs and labels.
+        learning_rate (float): Learning rate for the update.
+        epochs (int): Number of epochs to train the network.
+        batch_size (int): Size of the mini-batches.
+        updates_queue (queue.Queue): Queue to store the training updates.
 
     Returns:
-        None
+        float: Loss of the network after training.
+        float: Accuracy of the network after training.
     """
     num_samples = len(data)
     total_batches = (num_samples + batch_size - 1) // batch_size
 
     for epoch in range(epochs):
+        if stop_flag and stop_flag.is_set():
+            print("Training stopped by user.", file=sys.stderr)
+            return
         current_lr = adjust_learning_rate(learning_rate, epoch)
         print(f"Epoch {epoch + 1}/{epochs} - Learning Rate: {current_lr:.6f}", file=sys.stderr)
-        if stop_flag and stop_flag.is_set():
-            break
 
         np.random.shuffle(data)
         epoch_loss, correct_predictions = 0.0, 0
 
         for i, start_idx in enumerate(range(0, num_samples, batch_size)):
             if stop_flag and stop_flag.is_set():
-                break
-
+                print("Training stopped by user.", file=sys.stderr)
+                return
             batch = data[start_idx:start_idx + batch_size]
             batch_loss = 0.0
 
@@ -57,6 +64,9 @@ def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, b
                 correct_predictions += int((outputs.round() == targets).all())
 
             epoch_loss += batch_loss / len(batch)
+            if stop_flag and stop_flag.is_set():
+                print("Training stopped by user.", file=sys.stderr)
+                return
             print_progress_bar(
                 i + 1,
                 total_batches,
@@ -77,11 +87,11 @@ def forward_pass(network, inputs):
     Performs a forward pass through the network.
 
     Args:
-        network: The neural network structure.
-        inputs: Input data for the forward pass.
+        network (dict): Dictionary containing the network configuration.
+        inputs (np.ndarray): Input to the network.
 
     Returns:
-        Outputs of the network.
+        np.ndarray: Output of the network.
     """
     layer_input = inputs
     for layer in network['layers']:
@@ -95,6 +105,16 @@ def forward_pass(network, inputs):
     return layer_input
 
 def apply_activation(z, activation):
+    """
+    Applies the specified activation function to the input.
+
+    Args:
+        z (np.ndarray): Input to the activation function.
+        activation (str): Name of the activation function.
+
+    Returns:
+        np.ndarray: Output of the activation function.
+    """
     if activation == 'relu':
         return np.maximum(0, z)
     elif activation == 'sigmoid':
@@ -105,6 +125,13 @@ def apply_activation(z, activation):
 def compute_loss(outputs, targets):
     """
     Computes binary cross-entropy loss for scalar targets.
+
+    Args:
+        outputs (np.ndarray): Output of the network.
+        targets (np.ndarray): Target values for the network.
+
+    Returns:
+        float: Binary cross-entropy loss.
     """
     epsilon = 1e-7  # avoid log(0)
     outputs = np.clip(outputs, epsilon, 1 - epsilon)
@@ -113,15 +140,15 @@ def compute_loss(outputs, targets):
 def compute_gradients(network, outputs, targets, regularization):
     """
     Computes gradients for each layer in the network.
-    
+
     Args:
-        network: Neural network structure.
-        outputs: Network outputs from the forward pass.
-        targets: Target values for training.
-        regularization: L2 regularization coefficient.
+        network (dict): Dictionary containing the network configuration.
+        outputs (np.ndarray): Output of the network.
+        targets (np.ndarray): Target values for the network.
+        regularization (float): Regularization parameter.
 
     Returns:
-        List of dictionaries containing gradients for each layer.
+        list: List of dictionaries containing gradients for each layer.
     """
     gradients = []
     error = outputs - targets
@@ -147,18 +174,15 @@ def compute_gradients(network, outputs, targets, regularization):
 
     return gradients
 
-def update_weights(network, gradients, learning_rate, clip_value=1.0):
+def update_weights(network, gradients, learning_rate, clip_value=2.0):
     """
-    Updates the weights of the network using gradients.
+    Updates the weights and biases of the network using the computed gradients.
 
     Args:
-        network: Neural network structure.
-        gradients: Gradients for each layer.
-        learning_rate: Learning rate for gradient descent.
-        clip_value: Maximum allowed value for gradients.
-
-    Returns:
-        None
+        network (dict): Dictionary containing the network configuration.
+        gradients (list): List of dictionaries containing gradients for each layer.
+        learning_rate (float): Learning rate for the update.
+        clip_value (float): Value to clip the gradients.
     """
     for layer, grad in zip(network['layers'], gradients):
         if not isinstance(grad, dict):
@@ -170,6 +194,12 @@ def update_weights(network, gradients, learning_rate, clip_value=1.0):
         layer['biases'] -= learning_rate * grad_biases
 
 def get_label_map():
+    """
+    Returns a dictionary mapping labels to their corresponding indices.
+
+    Returns:
+        dict: Dictionary mapping labels to their corresponding indices.
+    """
     return {
         "something_vs_nothing": {"Something": 1, "Nothing": 0},
         "check_vs_stalemate": {"Check": 1, "Stalemate": 0},
@@ -178,5 +208,15 @@ def get_label_map():
     }
 
 def filter_data_by_labels(data, label_map):
+    """
+    Filters the data based on the valid labels for the network.
+    
+    Args:
+        data (list): List of tuples containing inputs and labels.
+        label_map (dict): Dictionary mapping labels to their corresponding indices.
+    
+    Returns:
+        list: List of tuples containing inputs and labels.
+    """
     valid_labels = set(label_map.keys())
     return [(inputs, label) for inputs, label in data if label in valid_labels]

@@ -2,6 +2,7 @@ import sys
 import numpy as np
 from utils.analyser.fen_parser import preprocess_fen
 from utils.prediction.prediction_utils import predict, interpret_decision
+from utils.training.training_utils import print_progress_bar
 
 def predict_mode(networks, input_file):
     """
@@ -17,6 +18,8 @@ def predict_mode(networks, input_file):
         fen_lines = [line.strip() for line in file if line.strip()]
 
     predictions = []
+    total_labels = 0
+    correct_predictions = 0
 
     for idx, line in enumerate(fen_lines):
         try:
@@ -52,19 +55,30 @@ def predict_mode(networks, input_file):
             decision = int(color_result > 0.5)
             current_prediction.append(decision)
 
-            print(f"Prediction: {current_prediction}", file=sys.stderr)
+            # print(f"Prediction: {current_prediction}", file=sys.stderr) # to debug the prediction chain
 
             interpreted_result = interpret_decision(current_prediction)
             predictions.append((fen, interpreted_result, labels))
+
+            print_progress_bar(idx + 1, len(fen_lines), prefix='Progress:', suffix='Complete')
 
         except Exception as e:
             print(f"Error processing FEN {idx + 1}: {e}", file=sys.stderr)
 
     # Display results
-    for fen, result, labels in predictions:
+    for fen, result, label in predictions:
         print(f"FEN: {fen}", file=sys.stderr)
         print("Prediction:", file=sys.stderr)
         print(result)
-        if labels:
-            print("Expected Labels:", ' '.join(labels), file=sys.stderr)
+        if label:
+            print("Expected Label:", ' '.join(labels), file=sys.stderr)
+            total_labels += 1
+            if result == label[0]:
+                correct_predictions += 1
         print("", file=sys.stderr)
+
+    if total_labels > 0:
+        accuracy = correct_predictions / total_labels * 100
+        print(f"Accuracy: {accuracy:.2f}%", file=sys.stderr)
+    else:
+        print("Accuracy not available for this session.", file=sys.stderr)

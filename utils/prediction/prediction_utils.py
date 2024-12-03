@@ -1,15 +1,39 @@
 import numpy as np
 
-def predict(network, inputs):
+def interpret_decision(result_path):
     """
-    Generates a prediction from the network based on the provided inputs.
+    Interprets the sequence of predictions from the neural networks.
 
     Args:
-        network: Trained neural network structure.
-        inputs: Input feature vector.
+        result_path (list): List of binary decisions in the order of neural networks.
 
     Returns:
-        Predicted class probabilities or outputs.
+        str: Final interpreted result.
+    """
+    if len(result_path) == 0 or result_path[0] == 0:
+        return "Nothing"
+    if len(result_path) > 1 and result_path[1] == 0:
+        return "Stalemate"
+    if len(result_path) > 2 and result_path[2] == 0:
+        if len(result_path) > 3 and result_path[3] == 0:
+            return "Check White"
+        elif len(result_path) > 3 and result_path[3] == 1:
+            return "Check Black"
+        return "Check"
+    if len(result_path) > 3 and result_path[3] == 0:
+        return "Checkmate White"
+    return "Checkmate Black"
+
+def predict(network, inputs):
+    """
+    Generates a prediction for the given inputs using the provided network.
+
+    Args:
+        network (dict): The neural network structure.
+        inputs (np.ndarray): The input feature vector.
+
+    Returns:
+        np.ndarray: The output probabilities or values from the network.
     """
     layer_input = inputs
     for layer in network['layers']:
@@ -25,41 +49,15 @@ def apply_activation(z, activation):
     Applies the specified activation function.
 
     Args:
-        z: Input to the activation function.
-        activation: Type of activation function.
+        z (np.ndarray): The pre-activation outputs.
+        activation (str): The activation function type.
 
     Returns:
-        Activated output.
+        np.ndarray: Activated output.
     """
     if activation == 'relu':
         return np.maximum(0, z)
-    elif activation == 'softmax':
-        exp_z = np.exp(z - np.max(z))  # Subtract max for numerical stability
-        return exp_z / exp_z.sum(axis=0)
+    elif activation == 'sigmoid':
+        return 1 / (1 + np.exp(-z))
     else:
         raise ValueError(f"Unsupported activation function: {activation}")
-
-def interpret_prediction(output):
-    """
-    Interprets the network's output for chess scenarios, prioritizing Checkmate over Check.
-
-    Args:
-        output: Output vector from the neural network.
-
-    Returns:
-        Human-readable interpretation (e.g., checkmate, stalemate).
-    """
-    # Classes for prediction
-    classes = [
-        "Checkmate White",  # Index 0
-        "Checkmate Black",  # Index 1
-        "Stalemate",        # Index 2
-        "Check White",      # Index 3
-        "Check Black",      # Index 4
-        "Nothing"           # Index 5
-    ]
-
-    # Sort indices by descending probability
-    sorted_indices = np.argsort(output)[::-1]
-
-    return classes[sorted_indices[0]]

@@ -9,7 +9,7 @@ class NumpyEncoder(json.JSONEncoder):
     """
     def default(self, obj):
         if isinstance(obj, np.ndarray):
-            return obj.tolist()  # Convert NumPy arrays to lists
+            return obj.tolist()
         return super().default(obj)
 
 def numpy_decoder(dct):
@@ -25,12 +25,9 @@ def numpy_decoder(dct):
     """
     for key, value in dct.items():
         if isinstance(value, list):
-            # Check if the list represents a NumPy array
             try:
-                # Attempt to convert to a NumPy array
                 dct[key] = np.array(value)
             except ValueError:
-                # If conversion fails, leave it as is
                 pass
     return dct
 

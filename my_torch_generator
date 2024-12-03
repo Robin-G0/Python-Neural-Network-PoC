@@ -5,8 +5,8 @@ from utils.generator.network_utils import parse_config, generate_network
 
 def main(args):
     if len(args) < 3 or len(args) % 2 == 0:
-        print("USAGE: ./my_torch_generator config_file_1 nb_1 [config_file_2 nb_2...]")
-        sys.exit(1)
+        print("USAGE: ./my_torch_generator config_file_1 nb_1 [config_file_2 nb_2...]", file=sys.stderr)
+        sys.exit(84)
 
     output_dir = "./"
     Path(output_dir).mkdir(exist_ok=True)
@@ -16,10 +16,10 @@ def main(args):
         try:
             num_networks = int(args[i + 1])
         except ValueError:
-            print(f"Error: '{args[i + 1]}' is not a valid number.")
-            sys.exit(1)
+            print(f"Error: '{args[i + 1]}' is not a valid number.", file=sys.stderr)
+            sys.exit(84)
 
-        print(f"Generating {num_networks} networks from {config_path}...")
+        print(f"Generating {num_networks} networks from {config_path}...", file=sys.stderr)
         config = parse_config(config_path)
         for network_id in range(1, num_networks + 1):
             generate_network(config, network_id, output_dir, config_path)

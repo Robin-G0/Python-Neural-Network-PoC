@@ -11,7 +11,7 @@ class NumpyEncoder(json.JSONEncoder):
     """
     def default(self, obj):
         if isinstance(obj, np.ndarray):
-            return obj.tolist()  # Convert NumPy arrays to lists
+            return obj.tolist()
         return super().default(obj)
 
 def parse_config(config_path):
@@ -28,11 +28,11 @@ def parse_config(config_path):
         with open(config_path, 'r') as file:
             return json.load(file)
     except FileNotFoundError:
-        print(f"Error: Configuration file '{config_path}' not found.")
-        sys.exit(1)
+        print(f"Error: Configuration file '{config_path}' not found.", file=sys.stderr)
+        sys.exit(84)
     except json.JSONDecodeError as e:
-        print(f"Error parsing JSON file '{config_path}': {e}")
-        sys.exit(1)
+        print(f"Error parsing JSON file '{config_path}': {e}", file=sys.stderr)
+        sys.exit(84)
 
 def initialize_weights(units, previous_units, activation):
     """
@@ -67,10 +67,9 @@ def generate_network(config, network_id, output_dir, config_path):
     input_size = config.get('input_size')
     layers = config.get('layers')
     if not input_size or not layers:
-        print("Error: Configuration file is missing required fields.")
-        sys.exit(1)
+        print("Error: Configuration file is missing required fields.", file=sys.stderr)
+        sys.exit(84)
     
-    # Simulate creating a network with improved weight initialization
     np.random.seed(network_id)  # Ensure reproducibility for this network
     network = {
         "input_size": input_size,
@@ -86,8 +85,7 @@ def generate_network(config, network_id, output_dir, config_path):
 
         network["layers"].append(layer_structure)
 
-    # Save the network with a .nn extension
     network_path = Path(output_dir) / f"{Path(config_path).stem}_{network_id}.nn"
     with open(network_path, 'w') as file:
         json.dump(network, file, cls=NumpyEncoder, indent=4)
-    print(f"Network {network_id} saved to {network_path}")
+    print(f"Network {network_id} saved to {network_path}", file=sys.stderr)

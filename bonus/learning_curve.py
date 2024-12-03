@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import signal
+import sys
 from pathlib import Path
 from utils.analyser.network_loader import save_network
 
@@ -28,10 +29,10 @@ class LearningCurve:
         if self.stop_flag:  # Prevent multiple calls
             return
 
-        print("\nTraining interrupted. Saving current progress...")
+        print("\nTraining interrupted. Saving current progress...", file=sys.stderr)
         interrupted_save_file = str(Path(self.save_file).with_name(f"{Path(self.save_file).stem}_interrupted.nn"))
         save_network(self.network, interrupted_save_file)
-        print(f"Progress saved to {interrupted_save_file}")
+        print(f"Progress saved to {interrupted_save_file}", file=sys.stderr)
         self.stop_flag = True
 
     def update(self, loss, accuracy):

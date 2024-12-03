@@ -1,10 +1,9 @@
 from utils.training.training_utils import get_label_map, filter_data_by_labels, train_network_multithreaded
-from utils.analyser.network_loader import save_combined_network
 import threading
 import queue
 import sys
 
-def train_mode(networks, data, curve_enabled, save_file, spec):
+def train_mode(networks, data, curve_enabled, save_file):
     """
     Trains the neural networks using the provided data.
 
@@ -19,11 +18,7 @@ def train_mode(networks, data, curve_enabled, save_file, spec):
     label_maps = get_label_map()
     stop_flag = threading.Event()  # Shared stop flag
 
-    if spec:
-        network_indices = [spec - 1]
-        print(f"Training only network {list(networks.keys())[spec - 1]}", file=sys.stderr)
-    else:
-        network_indices = range(len(networks))
+    network_indices = range(len(networks))
 
     for idx in network_indices:
         network_name = list(networks.keys())[idx]
@@ -54,9 +49,9 @@ def train_mode(networks, data, curve_enabled, save_file, spec):
             target=train_network_multithreaded,
             args=(network, training_data),
             kwargs={
-                'learning_rate': 0.01,
-                'epochs': 10,
-                'batch_size': 128,
+                'learning_rate': 0.001,
+                'epochs': 5,
+                'batch_size': 500,
                 'updates_queue': updates_queue,
                 'stop_flag': stop_flag
             }
@@ -82,6 +77,3 @@ def train_mode(networks, data, curve_enabled, save_file, spec):
             stop_flag.set()
             training_thread.join()
             sys.exit(84)
-
-    save_combined_network(networks, save_file)
-    print(f"Trained networks saved to {save_file}", file=sys.stderr)

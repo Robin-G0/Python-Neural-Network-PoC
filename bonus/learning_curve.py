@@ -26,7 +26,7 @@ class LearningCurve:
         self.fig, self.ax = plt.subplots()
         self.loss_line, = self.ax.plot([], [], label='Loss', color='blue')
         self.accuracy_line, = self.ax.plot([], [], label='Accuracy', color='green')
-        self.ax.set_xlabel('Time')
+        self.ax.set_xlabel('Processed Batches')
         self.ax.set_ylabel('Value')
         self.ax.legend()
         self.ax.set_title('Learning Curve')

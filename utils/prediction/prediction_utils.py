@@ -16,13 +16,13 @@ def interpret_decision(result_path):
         return "Stalemate"
     if len(result_path) > 2 and result_path[2] == 0:
         if len(result_path) > 3 and result_path[3] == 0:
-            return "Check White"
-        elif len(result_path) > 3 and result_path[3] == 1:
             return "Check Black"
+        elif len(result_path) > 3 and result_path[3] == 1:
+            return "Check White"
         return "Check"
     if len(result_path) > 3 and result_path[3] == 0:
-        return "Checkmate White"
-    return "Checkmate Black"
+        return "Checkmate Black"
+    return "Checkmate White"
 
 def predict(network, inputs):
     """

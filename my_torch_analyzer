@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import sys
 from utils.analyser.network_loader import load_combined_network
-from utils.analyser.fen_parser import parse_fen, preprocess_fen
+from utils.analyser.fen_parser import preprocess_fen
 from utils.training.training_mode import train_mode
 from utils.prediction.prediction_mode import predict_mode
+from utils.analyser.network_loader import save_combined_network
 
 def parse_arguments(args):
     if len(args) < 3 or (args[1] not in ['--train', '--predict']):
@@ -77,10 +78,27 @@ def main(args):
     networks = load_combined_network(load_file)
 
     if mode == '--train':
-        for network_name, network in networks.items():
-            input_features = network["input_features"]
-            data = load_chessboards(input_file, input_features)
-            train_mode({network_name: network}, data, curve_enabled, save_file, spec)
+        if spec is not None:
+            try:
+                network_name = list(networks.keys())[spec - 1]
+                print(f"Training only network: {network_name}", file=sys.stderr)
+                input_features = networks[network_name]["input_features"]
+                data = load_chessboards(input_file, input_features)
+                train_mode({network_name: networks[network_name]}, data, curve_enabled, save_file)
+                save_combined_network(networks, save_file)
+                print(f"Trained networks saved to {save_file}", file=sys.stderr)
+
+            except IndexError:
+                print(f"Error: Specified network index {spec} is out of range.", file=sys.stderr)
+                sys.exit(84)
+        else:
+            for network_name, network in networks.items():
+                print(f"Training network: {network_name}", file=sys.stderr)
+                input_features = network["input_features"]
+                data = load_chessboards(input_file, input_features)
+                train_mode({network_name: network}, data, curve_enabled, save_file, spec)
+                save_combined_network(networks, save_file)
+                print(f"Trained networks saved to {save_file}", file=sys.stderr)
 
     elif mode == '--predict':
         predict_mode(networks, input_file)

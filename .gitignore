@@ -1,5 +1,4 @@
 *.pyc
-*.nn
 *__pycache__/
 datasets/check/
 datasets/checkmate/
@@ -8,6 +7,7 @@ datasets/stalemate/
 datasets/originals/
 datasets/custom/subfiles/
 datasets/custom/random/
+networks/
 *_big.txt
 notes.txt
 Subject/

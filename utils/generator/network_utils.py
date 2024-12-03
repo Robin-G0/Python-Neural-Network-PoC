@@ -53,13 +53,13 @@ def initialize_weights(units, previous_units, activation):
 
 def generate_combined_network(config):
     """
-    Generates a dictionary containing 4 networks based on the provided configuration.
+    Generates a dictionary containing networks based on the provided configuration.
     
     Args:
         config (dict): The configuration dictionary with a 'networks' key containing individual network definitions.
     
     Returns:
-        dict: A dictionary with 4 networks labeled by their respective tasks.
+        dict: A dictionary with networks labeled by their respective tasks.
     """
     if "networks" not in config or not isinstance(config["networks"], list):
         print("Error: Configuration file is missing the 'networks' key or it's not a list.", file=sys.stderr)
@@ -68,14 +68,16 @@ def generate_combined_network(config):
     combined_networks = {}
     for network_conf in config["networks"]:
         name = network_conf.get("name")
+        input_features = network_conf.get("input_features", [])
         input_size = network_conf.get("input_size")
         layers = network_conf.get("layers")
 
-        if not name or not input_size or not layers:
+        if not name or not input_features or not input_size or not layers:
             print(f"Error: Missing required fields in network configuration: {network_conf}", file=sys.stderr)
             sys.exit(84)
 
         network = {
+            "input_features": input_features,
             "input_size": input_size,
             "layers": []
         }
@@ -112,4 +114,4 @@ def generate_multiple_combined_files(config, num_files, output_dir, config_path)
         file_name = Path(output_dir) / f"{Path(config_path).stem}_{file_id}.nn"
         with open(file_name, 'w') as file:
             json.dump(combined_networks, file, cls=NumpyEncoder, indent=4)
-        print(f"File {file_name} saved with 4 networks.", file=sys.stderr)
+        print(f"File {file_name} saved with networks labeled by tasks.", file=sys.stderr)

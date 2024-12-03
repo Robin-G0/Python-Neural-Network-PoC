@@ -6,7 +6,7 @@ import sys
 class NumpyEncoder(json.JSONEncoder):
     """
     Custom JSON encoder for NumPy arrays.
-    
+
     This class extends the default JSON encoder to handle NumPy arrays.
     """
     def default(self, obj):
@@ -17,12 +17,12 @@ class NumpyEncoder(json.JSONEncoder):
 def parse_config(config_path):
     """
     Parses a JSON configuration file.
-    
+
     Args:
-        config_path (str): The path to the configuration file.
-    
+        config_path: Path to the configuration file.
+
     Returns:
-        dict: The configuration dictionary.
+        The parsed configuration dictionary.
     """
     try:
         with open(config_path, 'r') as file:
@@ -36,56 +36,80 @@ def parse_config(config_path):
 
 def initialize_weights(units, previous_units, activation):
     """
-    Initializes the weights for a layer in a neural network.
-    
+    Initializes the weights of a neural network layer.
+
     Args:
-        units (int): The number of units in the layer.
-        previous_units (int): The number of units in the previous layer.
-        activation (str): The activation function for the layer.
-        
+        units: Number of units in the layer.
+        previous_units: Number of units in the previous layer.
+        activation: Activation function of the layer.
+
     Returns:
-        np.ndarray: The initialized weights for the layer.
+        NumPy array of initialized weights.
     """
     if activation == "relu":
         return np.random.randn(units, previous_units) * np.sqrt(2 / previous_units)
-    else:
+    else :
         return np.random.randn(units, previous_units) * np.sqrt(1 / previous_units)
 
-def generate_network(config, network_id, output_dir, config_path):
+def generate_combined_network(config):
     """
-    Generates a network and saves it as a file.
+    Generates a dictionary containing 4 networks based on the provided configuration.
     
     Args:
-        config (dict): The configuration dictionary for the network.
-        network_id (int): The unique identifier for the network.
-        output_dir (str): The directory to save the network file.
-        config_path (str): The path to the configuration file.
-        
+        config (dict): The configuration dictionary with a 'networks' key containing individual network definitions.
+    
+    Returns:
+        dict: A dictionary with 4 networks labeled by their respective tasks.
+    """
+    if "networks" not in config or not isinstance(config["networks"], list):
+        print("Error: Configuration file is missing the 'networks' key or it's not a list.", file=sys.stderr)
+        sys.exit(84)
+
+    combined_networks = {}
+    for network_conf in config["networks"]:
+        name = network_conf.get("name")
+        input_size = network_conf.get("input_size")
+        layers = network_conf.get("layers")
+
+        if not name or not input_size or not layers:
+            print(f"Error: Missing required fields in network configuration: {network_conf}", file=sys.stderr)
+            sys.exit(84)
+
+        network = {
+            "input_size": input_size,
+            "layers": []
+        }
+
+        for i, layer in enumerate(layers):
+            previous_units = input_size if i == 0 else layers[i - 1]["units"]
+            layer_structure = {
+                "weights": initialize_weights(layer["units"], previous_units, layer["activation"]).tolist(),
+                "biases": np.zeros(layer["units"]).tolist(),
+                "activation": layer["activation"]
+            }
+            network["layers"].append(layer_structure)
+
+        combined_networks[name] = network
+
+    return combined_networks
+
+def generate_multiple_combined_files(config, num_files, output_dir, config_path):
+    """
+    Generates multiple combined networks and saves them to separate files.
+
+    Args:
+        config: Configuration dictionary.
+        num_files: Number of files to generate.
+        output_dir: Directory to save the files.
+        config_path: Path to the configuration file.
+
     Returns:
         None
     """
-    input_size = config.get('input_size')
-    layers = config.get('layers')
-    if not input_size or not layers:
-        print("Error: Configuration file is missing required fields.", file=sys.stderr)
-        sys.exit(84)
-    
-    np.random.seed(network_id)  # Ensure reproducibility for this network
-    network = {
-        "input_size": input_size,
-        "layers": []
-    }
-    for i, layer in enumerate(layers):
-        previous_units = input_size if i == 0 else layers[i-1]['units']
-        layer_structure = {
-            "weights": initialize_weights(layer['units'], previous_units, layer["activation"]).tolist(),
-            "biases": np.zeros(layer['units']).tolist(),
-            "activation": layer["activation"]
-        }
-
-        network["layers"].append(layer_structure)
-
-    network_path = Path(output_dir) / f"{Path(config_path).stem}_{network_id}.nn"
-    with open(network_path, 'w') as file:
-        json.dump(network, file, cls=NumpyEncoder, indent=4)
-    print(f"Network {network_id} saved to {network_path}", file=sys.stderr)
+    for file_id in range(1, num_files + 1):
+        np.random.seed(file_id)  # Ensure reproducibility per file
+        combined_networks = generate_combined_network(config)
+        file_name = Path(output_dir) / f"{Path(config_path).stem}_{file_id}.nn"
+        with open(file_name, 'w') as file:
+            json.dump(combined_networks, file, cls=NumpyEncoder, indent=4)
+        print(f"File {file_name} saved with 4 networks.", file=sys.stderr)

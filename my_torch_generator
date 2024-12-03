@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from pathlib import Path
-from utils.generator.network_utils import parse_config, generate_network
+from utils.generator.network_utils import parse_config, generate_multiple_combined_files
 
 def main(args):
     if len(args) < 3 or len(args) % 2 == 0:
@@ -10,19 +10,18 @@ def main(args):
 
     output_dir = "./"
     Path(output_dir).mkdir(exist_ok=True)
-    
+
     for i in range(1, len(args), 2):
         config_path = args[i]
         try:
-            num_networks = int(args[i + 1])
+            num_files = int(args[i + 1])
         except ValueError:
             print(f"Error: '{args[i + 1]}' is not a valid number.", file=sys.stderr)
             sys.exit(84)
 
-        print(f"Generating {num_networks} networks from {config_path}...", file=sys.stderr)
+        print(f"Generating {num_files} files containing 4 networks each from {config_path}...", file=sys.stderr)
         config = parse_config(config_path)
-        for network_id in range(1, num_networks + 1):
-            generate_network(config, network_id, output_dir, config_path)
+        generate_multiple_combined_files(config, num_files, output_dir, config_path)
 
 if __name__ == "__main__":
     main(sys.argv)

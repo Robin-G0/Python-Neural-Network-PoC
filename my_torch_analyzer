@@ -71,16 +71,39 @@ def load_chessboards(input_file):
             print(f"Error parsing line {idx + 1}: {e}", file=sys.stderr)
     return data
 
+def load_prediction_chessboards(input_file):
+    print(f"Loading chessboards from: {input_file}", file=sys.stderr)
+    with open(input_file, 'r') as file:
+        chessboards = file.readlines()
+    data = []
+    print(f"Processing {len(chessboards)} chessboards...", file=sys.stderr)
+    for idx, line in enumerate(chessboards):
+        try:
+            parts = line.strip().split(' ')
+            if len(parts) < 6:
+                raise ValueError(f"Invalid FEN or missing fields in line {idx + 1}: {line.strip()}")
+            fen_string = ' '.join(parts[:6])
+            label = ' '.join(parts[6:]) if len(parts) > 6 else None
+            inputs = parse_fen(fen_string)
+            data.append((inputs, label))
+        except ValueError as e:
+            print(f"Skipping line {idx + 1}: {e}", file=sys.stderr)
+            data.append((None, None))
+    return data
+
 def main(args):
     mode, curve_enabled, load_file, input_file, save_file, spec = parse_arguments(args)
     print(f"Loading networks from: {load_file}", file=sys.stderr)
     networks = load_combined_network(load_file)
-    data = load_chessboards(input_file)
-
     if mode == '--train':
-        train_mode(networks, data, curve_enabled, save_file, spec)
+        print(f"Loading chessboards from: {input_file}", file=sys.stderr)
+        data = load_chessboards(input_file)
+        train_mode(networks, data, curve_enabled, save_file, spec=None)
     elif mode == '--predict':
+        print(f"Loading chessboards from: {input_file}", file=sys.stderr)
+        data = load_prediction_chessboards(input_file)
         predict_mode(networks, data)
+
 
 if __name__ == "__main__":
     main(sys.argv)

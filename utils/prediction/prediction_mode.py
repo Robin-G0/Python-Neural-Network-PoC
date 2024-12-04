@@ -66,14 +66,14 @@ def predict_mode(networks, input_file):
             print(f"Error processing FEN {idx + 1}: {e}", file=sys.stderr)
 
     # Display results
-    for fen, result, label in predictions:
+    for fen, result, labels in predictions:
         print(f"FEN: {fen}", file=sys.stderr)
         print("Prediction:", file=sys.stderr)
         print(result)
-        if label:
+        if labels:
             print("Expected Label:", ' '.join(labels), file=sys.stderr)
             total_labels += 1
-            if result == label[0]:
+            if result in labels:
                 correct_predictions += 1
         print("", file=sys.stderr)
 

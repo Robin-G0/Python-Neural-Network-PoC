@@ -1,3 +1,16 @@
 8/8/7K/3k4/6r1/7q/8/8 w - - 8 81 Checkmate Black
 5b2/4k3/4pp2/1p1R4/1P3r2/1KP5/4R2P/8 b - - 1 39 Nothing
 8/6kp/8/7p/5Pp1/4P3/6K1/8 w - - 0 69 Nothing
+8/8/7K/3k4/6r1/7q/8/8 w - - 8 81 Checkmate Black
+5b2/4k3/4pp2/1p1R4/1P3r2/1KP5/4R2P/8 b - - 1 39 Nothing
+8/8/7K/3k4/6r1/7q/8/8 w - - 8 81 Checkmate Black
+5b2/4k3/4pp2/1p1R4/1P3r2/1KP5/4R2P/8 b - - 1 39 Nothing
+8/8/7K/3k4/6r1/7q/8/8 w - - 8 81 Checkmate Black
+5b2/4k3/4pp2/1p1R4/1P3r2/1KP5/4R2P/8 b - - 1 39 Nothing
+8/8/7K/3k4/6r1/7q/8/8 w - - 8 81 Checkmate Black
+5b2/4k3/4pp2/1p1R4/1P3r2/1KP5/4R2P/8 b - - 1 39 Nothing
+8/8/7K/3k4/6r1/7q/8/8 w - - 8 81 Checkmate Black
+5b2/4k3/4pp2/1p1R4/1P3r2/1KP5/4R2P/8 b - - 1 39 Nothing
+8/8/7K/3k4/6r1/7q/8/8 w - - 8 81 Checkmate Black
+5b2/4k3/4pp2/1p1R4/1P3r2/1KP5/4R2P/8 b - - 1 39 Nothing
+

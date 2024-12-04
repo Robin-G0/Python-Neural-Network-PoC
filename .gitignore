@@ -5,6 +5,7 @@ datasets/checkmate/
 datasets/nothing/
 datasets/stalemate/
 datasets/originals/
+datasets/custom/1_line.txt
 datasets/custom/subfiles/
 datasets/custom/random/
 networks/

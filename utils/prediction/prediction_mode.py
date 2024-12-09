@@ -24,20 +24,13 @@ def process_fen_line(line, networks):
     current_prediction.append(decision)
 
     if decision == 1:
-        # Check vs Stalemate
-        inputs = preprocess_fen(fen, networks['check_vs_stalemate']['input_features'])
-        check_result = predict(networks['check_vs_stalemate'], inputs)
-        decision = int(check_result > 0.5)
+        # Check-Checkmate-Stalemate Prediction
+        inputs = preprocess_fen(fen, networks['check_checkmate_stalemate']['input_features'])
+        result = predict(networks['check_checkmate_stalemate'], inputs)
+        decision = np.argmax(result)
         current_prediction.append(decision)
 
-        if decision == 1:
-            # Checkmate vs Check
-            inputs = preprocess_fen(fen, networks['checkmate_vs_check']['input_features'])
-            checkmate_result = predict(networks['checkmate_vs_check'], inputs)
-            decision = int(checkmate_result > 0.5)
-            current_prediction.append(decision)
-
-    # White vs Black
+    # White vs Black Prediction
     inputs = preprocess_fen(fen, networks['white_vs_black']['input_features'])
     color_result = predict(networks['white_vs_black'], inputs)
     decision = int(color_result > 0.5)
@@ -47,25 +40,29 @@ def process_fen_line(line, networks):
     return fen, interpreted_result, labels
 
 def display_results(predictions):
-    """Displays the predictions and calculates accuracy if labels are provided."""
+    """
+    Displays the predictions and calculates accuracy if labels are provided.
+    """
     total_labels = 0
     correct_predictions = 0
 
     for fen, result, labels in predictions:
-        print(f"FEN: {fen}", file=sys.stderr)
-        print("Prediction :", file=sys.stderr)
-        print(result)
+        print(f"\nFEN: {fen}", file=sys.stderr)
+        print("Prediction:", result, file=sys.stderr)
+        
         if labels:
-            print("Expected :", file=sys.stderr)
-            print(labels[0], file=sys.stderr)
+            print("Expected:", labels[0], file=sys.stderr)
             total_labels += 1
-            if result in labels:
+            if result == labels[0]:
                 correct_predictions += 1
+            else:
+                print("Incorrect prediction!", file=sys.stderr)
+        
         print("", file=sys.stderr)
 
     if total_labels > 0:
         accuracy = correct_predictions / total_labels * 100
-        print(f"Accuracy: {accuracy:.2f}%", file=sys.stderr)
+        print(f"\nOverall Accuracy: {accuracy:.2f}%", file=sys.stderr)
     else:
         print("Accuracy not available for this session.", file=sys.stderr)
 
@@ -77,31 +74,31 @@ def calculate_and_print_accuracy(predictions, networks_count):
         predictions (list): List of tuples (FEN, result, labels).
         networks_count (int): Number of networks in the chain.
     """
-    correct_counts = [0] * networks_count  # Counts of correct predictions for each network
-    total_counts = [0] * networks_count    # Total number of tests for each network
+    correct_counts = [0] * networks_count  # Correct predictions for each network
+    total_counts = [0] * networks_count    # Total number of predictions
 
     for _, result, labels in predictions:
         if not labels:
             continue
 
-        # Derive expected and actual decision paths
+        # Get expected and actual decision paths
         expected_decision_path = interpret_label_path(labels[0])
         actual_decision_path = interpret_label_path(result)
 
-        # Evaluate predictions for each network
+        # Evaluate predictions network by network
         for network_idx in range(networks_count):
             if network_idx < len(expected_decision_path):
-                # Increment the test count for this network
                 total_counts[network_idx] += 1
 
-                # Check if the prediction was correct
-                if network_idx < len(actual_decision_path) and actual_decision_path[network_idx] == expected_decision_path[network_idx]:
+                if (
+                    network_idx < len(actual_decision_path)
+                    and actual_decision_path[network_idx] == expected_decision_path[network_idx]
+                ):
                     correct_counts[network_idx] += 1
                 else:
-                    # Stop evaluating deeper networks if the current one fails
-                    break
+                    break  # Stop if a network's prediction is wrong
 
-    # Print accuracy results for each network
+    # Display accuracy results for each network
     print("\n--- Network Accuracy ---", file=sys.stderr)
     for network_idx in range(networks_count):
         if total_counts[network_idx] > 0:
@@ -112,16 +109,15 @@ def calculate_and_print_accuracy(predictions, networks_count):
 
 def interpret_label_path(label):
     """
-    Maps labels or results to their decision paths.
+    Maps labels or results to their corresponding decision paths.
     """
     decision_map = {
         "Nothing": [0],
-        "Stalemate": [1, 0],
-        "Check": [1, 1, 0],
-        "Check Black": [1, 1, 0, 0],
-        "Check White": [1, 1, 0, 1],
-        "Checkmate Black": [1, 1, 1, 0],
-        "Checkmate White": [1, 1, 1, 1],
+        "Stalemate": [1, 2],
+        "Check Black": [1, 0, 0],
+        "Check White": [1, 0, 1],
+        "Checkmate Black": [1, 1, 0],
+        "Checkmate White": [1, 1, 1],
     }
     return decision_map.get(label, [])
 

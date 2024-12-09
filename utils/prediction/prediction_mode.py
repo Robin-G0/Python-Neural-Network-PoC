@@ -47,18 +47,19 @@ def display_results(predictions):
     correct_predictions = 0
 
     for fen, result, labels in predictions:
-        print(f"\nFEN: {fen}", file=sys.stderr)
-        print("Prediction:", result, file=sys.stderr)
+        # print(f"\nFEN: {fen}", file=sys.stderr)
+        # print("Prediction:", result, file=sys.stderr)
         
         if labels:
-            print("Expected:", labels[0], file=sys.stderr)
+            # print("Expected:", labels[0], file=sys.stderr)
             total_labels += 1
             if result == labels[0]:
                 correct_predictions += 1
             else:
-                print("Incorrect prediction!", file=sys.stderr)
+                # print("Incorrect prediction!", file=sys.stderr)
+                pass
         
-        print("", file=sys.stderr)
+        # print("", file=sys.stderr)
 
     if total_labels > 0:
         accuracy = correct_predictions / total_labels * 100

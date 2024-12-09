@@ -48,7 +48,7 @@ def train_mode(networks, data, curve_enabled, save_file):
             args=(network, training_data),
             kwargs={
                 'learning_rate': 0.001,
-                'epochs': 5,
+                'epochs': 20,
                 'batch_size': 500,
                 'updates_queue': updates_queue,
                 'stop_flag': stop_flag

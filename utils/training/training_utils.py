@@ -12,13 +12,13 @@ def print_progress_bar(current, total, length=40, prefix='', suffix='', fill='â–
     if current == total:
         print("", file=sys.stderr)
 
-def adjust_learning_rate(learning_rate, epoch, decay_rate=0.5, decay_step=40):
+def adjust_learning_rate(learning_rate, epoch, decay_rate=0.5, decay_step=5):
     """
     Adjusts the learning rate based on the current epoch.
     """
     return learning_rate * (decay_rate ** (epoch // decay_step))
 
-def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, batch_size=500, updates_queue=None, stop_flag=None):
+def train_network_multithreaded(network, data, learning_rate=0.001, epochs=10, batch_size=500, updates_queue=None, stop_flag=None):
     """
     Trains a neural network using mini-batch gradient descent.
 

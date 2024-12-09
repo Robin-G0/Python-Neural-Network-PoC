@@ -162,6 +162,9 @@ def compute_gradients(network, outputs, targets, regularization):
         elif activation == 'sigmoid':
             sigmoid = apply_activation(layer['z'], 'sigmoid')
             grad_activation = sigmoid * (1 - sigmoid)
+        elif activation == 'softmax':
+            softmax = apply_activation(layer['z'], 'softmax')
+            grad_activation = softmax * (1 - softmax)
         else:
             grad_activation = 1
 
@@ -204,7 +207,8 @@ def get_label_map():
         "something_vs_nothing": {"Something": 1, "Nothing": 0},
         "check_vs_stalemate": {"Check": 1, "Stalemate": 0},
         "checkmate_vs_check": {"Checkmate": 1, "Check": 0},
-        "white_vs_black": {"White": 1, "Black": 0}
+        "white_vs_black": {"White": 1, "Black": 0},
+        "check_checkmate_stalemate": {"Check": 0, "Checkmate": 1, "Stalemate": 2}
     }
 
 def filter_data_by_labels(data, label_map):

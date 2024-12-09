@@ -5,24 +5,37 @@ def interpret_decision(result_path):
     Interprets the sequence of predictions from the neural networks.
 
     Args:
-        result_path (list): List of binary decisions in the order of neural networks.
+        result_path (list): List of decisions in prediction order:
+            [Something/Nothing, Check/Checkmate/Stalemate, White/Black]
 
     Returns:
         str: Final interpreted result.
     """
-    if len(result_path) == 0 or result_path[0] == 0:
+    if not result_path or len(result_path) > 3:
+        return "Error"
+
+    # Something vs Nothing
+    if result_path[0] == 0:
         return "Nothing"
-    if len(result_path) > 1 and result_path[1] == 0:
+
+    # Check-Checkmate-Stalemate decision
+    state_decision = result_path[1]
+    color_decision = result_path[2]
+
+    if state_decision == 2:  # Stalemate
         return "Stalemate"
-    if len(result_path) > 2 and result_path[2] == 0:
-        if len(result_path) > 3 and result_path[3] == 0:
+    elif state_decision == 0:  # Check
+        if color_decision == 0:
             return "Check Black"
-        elif len(result_path) > 3 and result_path[3] == 1:
+        else:
             return "Check White"
-        return "Check"
-    if len(result_path) > 3 and result_path[3] == 0:
-        return "Checkmate Black"
-    return "Checkmate White"
+    elif state_decision == 1:  # Checkmate
+        if color_decision == 0:
+            return "Checkmate Black"
+        else:
+            return "Checkmate White"
+
+    return "Error"
 
 def predict(network, inputs):
     """
@@ -59,5 +72,8 @@ def apply_activation(z, activation):
         return np.maximum(0, z)
     elif activation == 'sigmoid':
         return 1 / (1 + np.exp(-z))
+    elif activation == 'softmax':
+        exp_z = np.exp(z - np.max(z))
+        return exp_z / np.sum(exp_z)
     else:
         raise ValueError(f"Unsupported activation function: {activation}")

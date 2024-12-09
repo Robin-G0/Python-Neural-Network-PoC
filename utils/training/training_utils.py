@@ -85,13 +85,6 @@ def train_network_multithreaded(network, data, learning_rate=0.005, epochs=10, b
 def forward_pass(network, inputs):
     """
     Performs a forward pass through the network.
-
-    Args:
-        network (dict): Dictionary containing the network configuration.
-        inputs (np.ndarray): Input to the network.
-
-    Returns:
-        np.ndarray: Output of the network.
     """
     layer_input = inputs
     for layer in network['layers']:
@@ -107,35 +100,29 @@ def forward_pass(network, inputs):
 def apply_activation(z, activation):
     """
     Applies the specified activation function to the input.
-
-    Args:
-        z (np.ndarray): Input to the activation function.
-        activation (str): Name of the activation function.
-
-    Returns:
-        np.ndarray: Output of the activation function.
     """
     if activation == 'relu':
         return np.maximum(0, z)
     elif activation == 'sigmoid':
         return 1 / (1 + np.exp(-z))
+    elif activation == 'softmax':
+        exp_z = np.exp(z - np.max(z, axis=-1, keepdims=True))
+        return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
     else:
         raise ValueError(f"Unsupported activation function: {activation}")
 
 def compute_loss(outputs, targets):
     """
-    Computes binary cross-entropy loss for scalar targets.
-
-    Args:
-        outputs (np.ndarray): Output of the network.
-        targets (np.ndarray): Target values for the network.
-
-    Returns:
-        float: Binary cross-entropy loss.
+    Computes the categorical cross-entropy loss for multi-class classification
+    or binary cross-entropy for binary classification.
     """
     epsilon = 1e-7  # avoid log(0)
     outputs = np.clip(outputs, epsilon, 1 - epsilon)
-    return -np.mean(targets * np.log(outputs) + (1 - targets) * np.log(1 - outputs))
+
+    if len(outputs.shape) == 1 or outputs.shape[1] == 1:  # Binary classification
+        return -np.mean(targets * np.log(outputs) + (1 - targets) * np.log(1 - outputs))
+    else:  # Multi-class classification
+        return -np.mean(np.sum(targets * np.log(outputs), axis=1))
 
 def compute_gradients(network, outputs, targets, regularization):
     """
@@ -162,9 +149,6 @@ def compute_gradients(network, outputs, targets, regularization):
         elif activation == 'sigmoid':
             sigmoid = apply_activation(layer['z'], 'sigmoid')
             grad_activation = sigmoid * (1 - sigmoid)
-        elif activation == 'softmax':
-            softmax = apply_activation(layer['z'], 'softmax')
-            grad_activation = softmax * (1 - softmax)
         else:
             grad_activation = 1
 
@@ -199,16 +183,11 @@ def update_weights(network, gradients, learning_rate, clip_value=2.0):
 def get_label_map():
     """
     Returns a dictionary mapping labels to their corresponding indices.
-
-    Returns:
-        dict: Dictionary mapping labels to their corresponding indices.
     """
     return {
         "something_vs_nothing": {"Something": 1, "Nothing": 0},
-        "check_vs_stalemate": {"Check": 1, "Stalemate": 0},
-        "checkmate_vs_check": {"Checkmate": 1, "Check": 0},
-        "white_vs_black": {"White": 1, "Black": 0},
-        "check_checkmate_stalemate": {"Check": 0, "Checkmate": 1, "Stalemate": 2}
+        "check_checkmate_stalemate": {"Check": 0, "Checkmate": 1, "Stalemate": 2},
+        "white_vs_black": {"White": 1, "Black": 0}
     }
 
 def filter_data_by_labels(data, label_map):
@@ -224,3 +203,12 @@ def filter_data_by_labels(data, label_map):
     """
     valid_labels = set(label_map.keys())
     return [(inputs, label) for inputs, label in data if label in valid_labels]
+
+def encode_one_hot(labels, num_classes):
+    """
+    Converts integer labels into one-hot encoded format.
+    """
+    one_hot = np.zeros((len(labels), num_classes))
+    for idx, label in enumerate(labels):
+        one_hot[idx, label] = 1
+    return one_hot

@@ -1,34 +1,32 @@
-from utils.training.training_utils import get_label_map, filter_data_by_labels, train_network_multithreaded
+from utils.training.training_utils import (
+    get_label_map, filter_data_by_labels, train_network_multithreaded, encode_one_hot
+)
 import threading
 import queue
 import sys
 
 def train_mode(networks, data, curve_enabled, save_file):
-    """
-    Trains the neural networks using the provided data.
-
-    Args:
-        networks (dict): Dictionary of neural networks with their configurations.
-        data (list): List of tuples containing inputs and labels.
-        curve_enabled (bool): Whether to enable the learning curve.
-        save_file (str): Path to save the trained networks.
-        spec (int): Index of the network to train.
-    """
     print("Training mode...", file=sys.stderr)
     label_maps = get_label_map()
     stop_flag = threading.Event()  # Shared stop flag
 
-    network_indices = range(len(networks))
-
-    for idx in network_indices:
-        network_name = list(networks.keys())[idx]
-        network = networks[network_name]
+    for network_name, network in networks.items():
+        if network_name not in label_maps:
+            print(f"No label map for network {network_name}. Skipping...", file=sys.stderr)
+            continue
+        
         label_map = label_maps[network_name]
 
-        training_data = [
-            (inputs, label_map[label])
-            for inputs, label in filter_data_by_labels(data, label_map)
-        ]
+        # Gestion des labels encodés
+        if network_name == "check_checkmate_stalemate":
+            labels = [label_map[label] for _, label in filter_data_by_labels(data, label_map)]
+            encoded_labels = encode_one_hot(labels, num_classes=3)
+            training_data = [(inputs, label) for (inputs, _), label in zip(data, encoded_labels)]
+        else:
+            training_data = [
+                (inputs, label_map[label])
+                for inputs, label in filter_data_by_labels(data, label_map)
+            ]
 
         if not training_data:
             print(f"No valid data for network {network_name}. Skipping...", file=sys.stderr)

@@ -2,7 +2,7 @@ import sys
 import numpy as np
 from utils.analyser.fen_parser import preprocess_fen
 from utils.prediction.prediction_utils import predict, interpret_decision
-from utils.training.training_utils import print_progress_bar
+from utils.training.progress import print_progress_bar
 
 def load_fen_lines(input_file):
     """Loads and processes FEN strings from the input file."""

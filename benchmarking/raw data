@@ -1,0 +1,141 @@
+test network 2 -> small dataset (~20k)
+
+# 'lr_strategy': "reduce_on_plateau",  # Default strategy
+# 'lr_params': {
+#     'patience': 5,
+#     'cooldown': 3,
+#     'decay_factor': 0.5,
+#     'min_lr': 0.0001,
+#     'threshold': 0.002
+# }
+
+strategy : reduce_on_plateau
+base learning rate : 0.001
+epoch : 20
+results :
+
+Overall Accuracy: 49.45%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 80.31% (Tests: 914)
+Network 2 Accuracy: 51.21% (Tests: 578)
+Network 3 Accuracy: 100.00% (Tests: 296)
+
+strategy : reduce_on_plateau
+base learning rate : 0.002
+epoch : 20
+results :
+
+Overall Accuracy: 52.30%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 80.31% (Tests: 914)
+Network 2 Accuracy: 55.71% (Tests: 578)
+Network 3 Accuracy: 100.00% (Tests: 310)
+
+# 'lr_strategy': "cyclic_lr", # Cyclic Learning Rate
+# 'lr_params': {
+#     'max_lr': 0.01,
+#     'min_lr': 0.001,
+#     'step_size': 5
+# }
+
+strategy : cycling_lr
+base learning rate : 0.002
+epoch : 20
+results :
+
+Overall Accuracy: 53.61%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 80.31% (Tests: 914)
+Network 2 Accuracy: 57.79% (Tests: 578)
+Network 3 Accuracy: 100.00% (Tests: 301)
+
+# 'lr_strategy': "cosine_annealing_lr",
+# 'lr_params': {
+#     'max_lr': 0.01,
+#     'min_lr': 0.001,
+#     'step_size': 5
+# }
+
+strategy : cosine_annealing_lr
+base learning rate : 0.002
+epoch : 20
+results :
+
+Overall Accuracy: 53.83%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 80.31% (Tests: 914)
+Network 2 Accuracy: 58.13% (Tests: 578)
+Network 3 Accuracy: 100.00% (Tests: 310)
+
+BIG DATASET TESTINGS
+
+# 'lr_strategy': "cosine_annealing_lr",
+# 'lr_params': {
+#     'max_lr': 0.004,
+#     'min_lr': 0.0001,
+#     'step_size': 5
+# }
+
+strategy : cosine_annealing_lr
+base learning rate : 0.002
+epoch : 20
+results :
+
+Overall Accuracy: 55.03%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 80.31% (Tests: 914)
+Network 2 Accuracy: 60.03% (Tests: 578)
+Network 3 Accuracy: 100.00% (Tests: 322)
+
+./my_torch_analyzer --train --spec 2 networks/cfg_network_3.nn datasets/custom/spec/2_check_checkmate_stalemate.txt
+Loading networks from: networks/cfg_network_3.nn
+Training only network: check_checkmate_stalemate
+Loading chessboards from: datasets/custom/spec/2_check_checkmate_stalemate.txt
+Processing 425289 chessboards...
+Training mode...
+Epoch 1/20 - Learning Rate: 0.004000
+Epoch 1/20 - Loss: 0.3409 - Train Accuracy: 0.7072 - Val Accuracy: 0.7462
+Epoch 2/20 - Learning Rate: 0.003976
+Epoch 2/20 - Loss: 0.3187 - Train Accuracy: 0.7363 - Val Accuracy: 0.7482
+Epoch 3/20 - Learning Rate: 0.003905
+Epoch 3/20 - Loss: 0.3145 - Train Accuracy: 0.7408 - Val Accuracy: 0.7479
+Epoch 4/20 - Learning Rate: 0.003787
+Epoch 4/20 - Loss: 0.3119 - Train Accuracy: 0.7450 - Val Accuracy: 0.7510
+Epoch 5/20 - Learning Rate: 0.003628
+Epoch 5/20 - Loss: 0.3091 - Train Accuracy: 0.7476 - Val Accuracy: 0.7599
+Epoch 6/20 - Learning Rate: 0.003429
+Epoch 6/20 - Loss: 0.3069 - Train Accuracy: 0.7497 - Val Accuracy: 0.7674
+Epoch 7/20 - Learning Rate: 0.003196
+Epoch 7/20 - Loss: 0.3044 - Train Accuracy: 0.7522 - Val Accuracy: 0.7632
+Epoch 8/20 - Learning Rate: 0.002935
+Epoch 8/20 - Loss: 0.3020 - Train Accuracy: 0.7547 - Val Accuracy: 0.7643
+Epoch 9/20 - Learning Rate: 0.002653
+Epoch 9/20 - Loss: 0.2999 - Train Accuracy: 0.7566 - Val Accuracy: 0.7558
+Epoch 10/20 - Learning Rate: 0.002355
+Epoch 10/20 - Loss: 0.2968 - Train Accuracy: 0.7612 - Val Accuracy: 0.7710
+Epoch 11/20 - Learning Rate: 0.002050
+Epoch 11/20 - Loss: 0.2940 - Train Accuracy: 0.7636 - Val Accuracy: 0.7594
+Epoch 12/20 - Learning Rate: 0.001745
+Epoch 12/20 - Loss: 0.2909 - Train Accuracy: 0.7666 - Val Accuracy: 0.7688
+Epoch 13/20 - Learning Rate: 0.001447
+Epoch 13/20 - Loss: 0.2883 - Train Accuracy: 0.7695 - Val Accuracy: 0.7785
+Epoch 14/20 - Learning Rate: 0.001165
+Epoch 14/20 - Loss: 0.2844 - Train Accuracy: 0.7733 - Val Accuracy: 0.7699
+Epoch 15/20 - Learning Rate: 0.000904
+Epoch 15/20 - Loss: 0.2815 - Train Accuracy: 0.7762 - Val Accuracy: 0.7783
+Epoch 16/20 - Learning Rate: 0.000671
+Epoch 16/20 - Loss: 0.2791 - Train Accuracy: 0.7792 - Val Accuracy: 0.7754
+Epoch 17/20 - Learning Rate: 0.000472
+Epoch 17/20 - Loss: 0.2763 - Train Accuracy: 0.7820 - Val Accuracy: 0.7850
+Epoch 18/20 - Learning Rate: 0.000313
+Epoch 18/20 - Loss: 0.2749 - Train Accuracy: 0.7835 - Val Accuracy: 0.7842
+Epoch 19/20 - Learning Rate: 0.000195
+Epoch 19/20 - Loss: 0.2735 - Train Accuracy: 0.7861 - Val Accuracy: 0.7854
+Epoch 20/20 - Learning Rate: 0.000124
+Epoch 20/20 - Loss: 0.2722 - Train Accuracy: 0.7871 - Val Accuracy: 0.7853
+Training for network check_checkmate_stalemate completed.

@@ -5,6 +5,7 @@ import threading
 import queue
 import sys
 
+
 def train_mode(networks, data, curve_enabled, save_file):
     print("Training mode...", file=sys.stderr)
     label_maps = get_label_map()
@@ -43,15 +44,36 @@ def train_mode(networks, data, curve_enabled, save_file):
                 print(f"Error: {e}, Cannot use +curve option.", file=sys.stderr)
                 sys.exit(84)
 
+        # Updated call to the multithreaded training function
         training_thread = threading.Thread(
             target=train_network_multithreaded,
             args=(network, training_data),
             kwargs={
-                'learning_rate': 0.001,
-                'epochs': 20,
+                'initial_learning_rate': 0.002,
+                'epochs': 100,
                 'batch_size': 500,
                 'updates_queue': updates_queue,
-                'stop_flag': stop_flag
+                'stop_flag': stop_flag,
+                # 'lr_strategy': "reduce_on_plateau",  # Default strategy
+                # 'lr_params': {
+                #     'patience': 5,
+                #     'cooldown': 3,
+                #     'decay_factor': 0.5,
+                #     'min_lr': 0.0001,
+                #     'threshold': 0.002
+                # }
+                # 'lr_strategy': "cyclic_lr", # Cyclic Learning Rate
+                # 'lr_params': {
+                #     'max_lr': 0.004,
+                #     'min_lr': 0.0001,
+                #     'step_size': 5
+                # }
+                'lr_strategy': "cosine_annealing_lr",
+                'lr_params': {
+                    'max_lr': 0.004,
+                    'min_lr': 0.00001,
+                    'step_size': 5
+                }
             }
         )
         training_thread.start()
@@ -59,9 +81,9 @@ def train_mode(networks, data, curve_enabled, save_file):
         try:
             while training_thread.is_alive():
                 try:
-                    loss, accuracy = updates_queue.get(timeout=0.1)
+                    loss, train_accuracy, val_accuracy = updates_queue.get(timeout=0.1)
                     if curve_enabled and curve:
-                        curve.update(loss, accuracy)
+                        curve.update(loss, train_accuracy, val_accuracy)
                 except queue.Empty:
                     continue
 

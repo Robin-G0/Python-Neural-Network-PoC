@@ -8,7 +8,9 @@ datasets/originals/
 datasets/custom/1_line.txt
 datasets/custom/subfiles/
 datasets/custom/random/
-networks/
+networks/cfg_network_1.nn
+networks/cfg_network_2.nn
+networks/cfg_network_3.nn
 *_big.txt
 notes.txt
 strategies.txt

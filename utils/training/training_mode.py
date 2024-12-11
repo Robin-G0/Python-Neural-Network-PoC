@@ -50,7 +50,7 @@ def train_mode(networks, data, curve_enabled, save_file):
             args=(network, training_data),
             kwargs={
                 'initial_learning_rate': 0.002,
-                'epochs': 20,
+                'epochs': 10,
                 'batch_size': 500,
                 'updates_queue': updates_queue,
                 'stop_flag': stop_flag,
@@ -71,7 +71,7 @@ def train_mode(networks, data, curve_enabled, save_file):
                 'lr_strategy': "cosine_annealing_lr",
                 'lr_params': {
                     'max_lr': 0.004,
-                    'min_lr': 0.00001,
+                    'min_lr': 0.0001,
                     'step_size': 5
                 }
             }

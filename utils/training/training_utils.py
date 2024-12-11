@@ -3,10 +3,24 @@ import sys
 from utils.training.progress import print_progress_bar
 from utils.training.learning_rate import adjust_learning_rate
 
-def train_network_multithreaded(network, data, initial_learning_rate=0.001, epochs=20, batch_size=500, 
-                                updates_queue=None, stop_flag=None, lr_strategy="reduce_on_plateau", lr_params=None):
+def apply_dropout(inputs, dropout_rate):
     """
-    Entraîne un réseau de neurones en utilisant le gradient descent par mini-batch.
+    Applies dropout to the input layer during training.
+    Args:
+        inputs (np.ndarray): Input array.
+        dropout_rate (float): Probability of dropping a unit.
+    Returns:
+        np.ndarray: The input with dropout applied.
+    """
+    if dropout_rate <= 0.0 or dropout_rate >= 1.0:
+        return inputs  # No dropout if rate is invalid
+    dropout_mask = np.random.binomial(1, 1 - dropout_rate, size=inputs.shape)
+    return inputs * dropout_mask
+
+def train_network_multithreaded(network, data, initial_learning_rate=0.001, epochs=20, batch_size=500, 
+                                updates_queue=None, stop_flag=None, lr_strategy="reduce_on_plateau", lr_params=None, dropout_rate=0.2):
+    """
+    Entraîne un réseau de neurones avec dropout et mise à jour du taux d'apprentissage.
 
     Args:
         network (dict): Réseau à entraîner.
@@ -18,6 +32,7 @@ def train_network_multithreaded(network, data, initial_learning_rate=0.001, epoc
         stop_flag (threading.Event): Indicateur d'arrêt.
         lr_strategy (str): Stratégie de réglage du taux d'apprentissage.
         lr_params (dict): Paramètres supplémentaires pour l'ajustement du taux d'apprentissage.
+        dropout_rate (float): Taux de dropout appliqué aux couches cachées.
     """
     if lr_params is None:
         lr_params = {}
@@ -30,7 +45,6 @@ def train_network_multithreaded(network, data, initial_learning_rate=0.001, epoc
     train_data = data[:split_idx]
     val_data = data[split_idx:]
 
-    # Initialize learning rate variables
     learning_rate = initial_learning_rate
     best_val_acc = 0
     last_plateau_epoch = -1
@@ -44,9 +58,7 @@ def train_network_multithreaded(network, data, initial_learning_rate=0.001, epoc
         if lr_strategy == "reduce_on_plateau":
             learning_rate, last_plateau_epoch = adjust_learning_rate(
                 learning_rate, epoch, strategy=lr_strategy,
-                val_acc=val_accuracy if epoch > 0 else 0,
-                best_val_acc=best_val_acc,
-                last_plateau_epoch=last_plateau_epoch, **lr_params
+                val_acc=best_val_acc, last_plateau_epoch=last_plateau_epoch, **lr_params
             )
         else:
             learning_rate = adjust_learning_rate(
@@ -67,7 +79,9 @@ def train_network_multithreaded(network, data, initial_learning_rate=0.001, epoc
             batch_loss = 0.0
 
             for inputs, targets in batch:
-                outputs = forward_pass(network, inputs)
+                # Apply dropout only during training
+                inputs_dropped = apply_dropout(inputs, dropout_rate)
+                outputs = forward_pass(network, inputs_dropped)
                 loss = compute_loss(outputs, targets)
                 gradients = compute_gradients(network, outputs, targets, regularization=0.001)
                 update_weights(network, gradients, learning_rate)

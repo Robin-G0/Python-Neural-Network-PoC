@@ -48,7 +48,8 @@ def display_results(predictions):
 
     for fen, result, labels in predictions:
         # print(f"\nFEN: {fen}", file=sys.stderr)
-        # print("Prediction:", result, file=sys.stderr)
+        # print("Prediction:", file=sys.stderr)
+        print(result)
         
         if labels:
             # print("Expected:", labels[0], file=sys.stderr)

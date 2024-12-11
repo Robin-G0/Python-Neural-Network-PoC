@@ -110,3 +110,20 @@ Overall Accuracy: 55.36%
 Network 1 Accuracy: 80.31% (Tests: 914)
 Network 2 Accuracy: 60.55% (Tests: 578)
 Network 3 Accuracy: 100.00% (Tests: 328)
+
+LAST BEST ON CUSTOM 4k/4k/4k Dataset for check checkmate and stalemate
+
+'lr_strategy': "cosine_annealing_lr",
+'lr_params': {
+    'max_lr': 0.004,
+    'min_lr': 0.000001,
+    'step_size': 5
+}
+
+Overall Accuracy: 62.04%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 80.31% (Tests: 914)
+Network 2 Accuracy: 71.11% (Tests: 578)
+Network 3 Accuracy: 100.00% (Tests: 286)
+Early Stopping: 21 epochs

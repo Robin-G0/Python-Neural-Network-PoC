@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import copy
 from utils.training.progress import print_progress_bar
 from utils.training.learning_rate import adjust_learning_rate
 
@@ -48,11 +49,16 @@ def train_network_multithreaded(network, data, initial_learning_rate=0.001, epoc
     learning_rate = initial_learning_rate
     best_val_acc = 0
     last_plateau_epoch = -1
+    best_epoch_loss = float('inf')
+    best_epoch_loss_val = 1.0
+    best_epoch = -1
+    best_network_state = None
+    consecutive_increase_count = 0
 
     for epoch in range(epochs):
         if stop_flag and stop_flag.is_set():
             print("Training stopped by user.", file=sys.stderr)
-            return
+            break
 
         # Adjust Learning Rate
         if lr_strategy == "reduce_on_plateau":
@@ -73,7 +79,7 @@ def train_network_multithreaded(network, data, initial_learning_rate=0.001, epoc
         for start_idx in range(0, len(train_data), batch_size):
             if stop_flag and stop_flag.is_set():
                 print("Training stopped by user.", file=sys.stderr)
-                return
+                break
 
             batch = list(train_data)[start_idx:start_idx + batch_size]
             batch_loss = 0.0
@@ -115,6 +121,26 @@ def train_network_multithreaded(network, data, initial_learning_rate=0.001, epoc
         print(f"Epoch {epoch + 1}/{epochs} - Loss: {epoch_loss / total_batches:.4f} - "
               f"Train Accuracy: {correct_predictions / len(train_data):.4f} - Val Accuracy: {val_accuracy:.4f}",
               file=sys.stderr)
+
+        # Check for early stopping
+        if epoch_loss < best_epoch_loss:
+            best_epoch_loss = epoch_loss
+            best_epoch = epoch
+            best_network_state = copy.deepcopy(network)
+            best_epoch_loss_val = epoch_loss / total_batches
+            consecutive_increase_count = 0  # Reset the counter
+        elif epoch_loss > best_epoch_loss:
+            consecutive_increase_count += 1
+            if consecutive_increase_count >= 3:
+                print(f"Stopping early at epoch {epoch + 1} due to 3 consecutive increases in loss.", file=sys.stderr)
+                break
+        else:
+            consecutive_increase_count = 0  # Reset the counter if loss does not increase
+
+    # Restore the best network state
+    if best_network_state:
+        network.update(best_network_state)
+        print(f"Restored network state from epoch {best_epoch + 1} with lowest loss {best_epoch_loss_val:.4f}.", file=sys.stderr)
 
 def forward_pass(network, inputs):
     """

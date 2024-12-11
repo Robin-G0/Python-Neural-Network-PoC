@@ -71,7 +71,7 @@ def train_mode(networks, data, curve_enabled, save_file):
                 'lr_strategy': "cosine_annealing_lr",
                 'lr_params': {
                     'max_lr': 0.004,
-                    'min_lr': 0.00005,
+                    'min_lr': 0.000001,
                     'step_size': 5
                 }
             }

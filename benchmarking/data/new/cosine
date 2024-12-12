@@ -1,0 +1,57 @@
+EQUAL DATASET SMALL 17k
+
+50 epochs
+'lr_strategy': "cosine_annealing_lr",
+'lr_params': {
+    'max_lr': 0.004,
+    'min_lr': 0.000001,
+    'step_size': 5
+}
+Overall Accuracy: 63.01%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 63.01% (Tests: 41078)
+Network 2 Accuracy: 100.00% (Tests: 14972)
+
+Trained again with ALL colorless 40k :
+
+50 epochs
+'lr_strategy': "cosine_annealing_lr",
+'lr_params': {
+    'max_lr': 0.004,
+    'min_lr': 0.000001,
+    'step_size': 5
+}
+    Test on 1 line :
+    Overall Accuracy: 61.27%
+    --- Network Accuracy ---
+    Network 1 Accuracy: 61.27% (Tests: 914)
+    Network 2 Accuracy: 100.00% (Tests: 313)
+
+    Test on balanced.txt :
+    Overall Accuracy: 67.13%
+
+    --- Network Accuracy ---
+    Network 1 Accuracy: 67.13% (Tests: 41078)
+    Network 2 Accuracy: 100.00% (Tests: 16642)
+
+DATASET ALL COLORLESS 40k on FRESH NN
+
+'lr_strategy': "cosine_annealing_lr",
+'lr_params': {
+    'max_lr': 0.004,
+    'min_lr': 0.000001,
+    'step_size': 5
+}
+
+    Test on 1 line :
+    Overall Accuracy: 61.49%
+    --- Network Accuracy ---
+    Network 1 Accuracy: 61.49% (Tests: 914)
+    Network 2 Accuracy: 100.00% (Tests: 306)
+
+    Test on balanced.txt :
+    Overall Accuracy: 66.38%
+    --- Network Accuracy ---
+    Network 1 Accuracy: 66.38% (Tests: 41078)
+    Network 2 Accuracy: 100.00% (Tests: 16455)

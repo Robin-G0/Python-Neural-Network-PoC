@@ -1,0 +1,10 @@
+'lr_strategy': "cyclic_lr", # Cyclic Learning Rate
+'lr_params': {
+    'max_lr': 0.004,
+    'min_lr': 0.0001,
+    'step_size': 5
+}
+
+balanced :
+cycles : 59% pour les deux tests
+big : 58% one line - 63% other line

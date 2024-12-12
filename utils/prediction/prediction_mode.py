@@ -12,29 +12,27 @@ def load_fen_lines(input_file):
 def process_fen_line(line, networks):
     """Processes a single FEN line and generates predictions."""
     parts = line.split(' ', maxsplit=6)
+    
+    if len(parts) < 6:
+        raise ValueError(f"Invalid FEN format: {line}")
+    
     fen = ' '.join(parts[:6])
     labels = parts[6:] if len(parts) > 6 else None
 
     current_prediction = []
 
-    # Something vs Nothing
-    inputs = preprocess_fen(fen, networks['something_vs_nothing']['input_features'])
-    something_result = predict(networks['something_vs_nothing'], inputs)
-    decision = int(something_result > 0.5)
+    # Check-Checkmate-Stalemate-Nothing Prediction
+    inputs = preprocess_fen(fen, networks['check_checkmate_stalemate_nothing']['input_features'])
+    result = predict(networks['check_checkmate_stalemate_nothing'], inputs)
+    decision = np.argmax(result)
     current_prediction.append(decision)
 
-    if decision == 1:
-        # Check-Checkmate-Stalemate Prediction
-        inputs = preprocess_fen(fen, networks['check_checkmate_stalemate']['input_features'])
-        result = predict(networks['check_checkmate_stalemate'], inputs)
-        decision = np.argmax(result)
-        current_prediction.append(decision)
-
-    # White vs Black Prediction
-    inputs = preprocess_fen(fen, networks['white_vs_black']['input_features'])
-    color_result = predict(networks['white_vs_black'], inputs)
-    decision = int(color_result > 0.5)
-    current_prediction.append(decision)
+    # Interroger White vs Black uniquement si pertinent
+    if decision in [0, 1]:  # Check ou Checkmate
+        inputs = preprocess_fen(fen, networks['white_vs_black']['input_features'])
+        color_result = predict(networks['white_vs_black'], inputs)
+        color_decision = int(color_result > 0.5)
+        current_prediction.append(color_decision)
 
     interpreted_result = interpret_decision(current_prediction)
     return fen, interpreted_result, labels
@@ -114,12 +112,12 @@ def interpret_label_path(label):
     Maps labels or results to their corresponding decision paths.
     """
     decision_map = {
-        "Nothing": [0],
-        "Stalemate": [1, 2],
-        "Check Black": [1, 0, 0],
-        "Check White": [1, 0, 1],
-        "Checkmate Black": [1, 1, 0],
-        "Checkmate White": [1, 1, 1],
+        "Nothing": [3],
+        "Stalemate": [2],
+        "Check Black": [0, 0],
+        "Check White": [0, 1],
+        "Checkmate Black": [1, 0],
+        "Checkmate White": [1, 1],
     }
     return decision_map.get(label, [])
 

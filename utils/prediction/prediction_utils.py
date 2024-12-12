@@ -11,31 +11,34 @@ def interpret_decision(result_path):
     Returns:
         str: Final interpreted result.
     """
-    if not result_path or len(result_path) > 3:
+    if not result_path or len(result_path) < 1:
         return "Error"
 
-    # Something vs Nothing
-    if result_path[0] == 0:
+    state_decision = result_path[0]
+
+    if state_decision == 3:  # Nothing
         return "Nothing"
-
-    # Check-Checkmate-Stalemate decision
-    state_decision = result_path[1]
-    color_decision = result_path[2]
-
-    if state_decision == 2:  # Stalemate
+    elif state_decision == 2:  # Stalemate
         return "Stalemate"
-    elif state_decision == 0:  # Check
+
+    if len(result_path) < 2:
+        return "Error: Missing Color Decision"
+
+    color_decision = result_path[1]
+
+    if state_decision == 0:  # Check
         if color_decision == 0:
             return "Check Black"
-        else:
+        elif color_decision == 1:
             return "Check White"
+
     elif state_decision == 1:  # Checkmate
         if color_decision == 0:
             return "Checkmate Black"
-        else:
+        elif color_decision == 1:
             return "Checkmate White"
 
-    return "Error"
+    return "Error: Invalid Decision"
 
 def predict(network, inputs):
     """

@@ -245,8 +245,7 @@ def get_label_map():
     Returns a dictionary mapping labels to their corresponding indices.
     """
     return {
-        "something_vs_nothing": {"Something": 1, "Nothing": 0},
-        "check_checkmate_stalemate": {"Check": 0, "Checkmate": 1, "Stalemate": 2},
+        "check_checkmate_stalemate_nothing": {"Check": 0, "Checkmate": 1, "Stalemate": 2, "Nothing": 3},
         "white_vs_black": {"White": 1, "Black": 0}
     }
 

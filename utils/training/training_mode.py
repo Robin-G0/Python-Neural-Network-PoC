@@ -5,7 +5,6 @@ import threading
 import queue
 import sys
 
-
 def train_mode(networks, data, curve_enabled, save_file):
     print("Training mode...", file=sys.stderr)
     label_maps = get_label_map()
@@ -19,9 +18,9 @@ def train_mode(networks, data, curve_enabled, save_file):
         label_map = label_maps[network_name]
 
         # Gestion des labels encodés
-        if network_name == "check_checkmate_stalemate":
+        if network_name == "check_checkmate_stalemate_nothing":
             labels = [label_map[label] for _, label in filter_data_by_labels(data, label_map)]
-            encoded_labels = encode_one_hot(labels, num_classes=3)
+            encoded_labels = encode_one_hot(labels, num_classes=4)
             training_data = [(inputs, label) for (inputs, _), label in zip(data, encoded_labels)]
         else:
             training_data = [
@@ -50,7 +49,7 @@ def train_mode(networks, data, curve_enabled, save_file):
             args=(network, training_data),
             kwargs={
                 'initial_learning_rate': 0.002,
-                'epochs': 50,
+                'epochs': 20,
                 'batch_size': 500,
                 'updates_queue': updates_queue,
                 'stop_flag': stop_flag,
@@ -62,18 +61,18 @@ def train_mode(networks, data, curve_enabled, save_file):
                 #     'min_lr': 0.0001,
                 #     'threshold': 0.002
                 # }
-                # 'lr_strategy': "cyclic_lr", # Cyclic Learning Rate
-                # 'lr_params': {
-                #     'max_lr': 0.004,
-                #     'min_lr': 0.0001,
-                #     'step_size': 5
-                # }
-                'lr_strategy': "cosine_annealing_lr",
+                'lr_strategy': "cyclic_lr", # Cyclic Learning Rate
                 'lr_params': {
                     'max_lr': 0.004,
-                    'min_lr': 0.000001,
+                    'min_lr': 0.0001,
                     'step_size': 5
                 }
+                # 'lr_strategy': "cosine_annealing_lr",
+                # 'lr_params': {
+                #     'max_lr': 0.004,
+                #     'min_lr': 0.000001,
+                #     'step_size': 5
+                # }
             }
         )
         training_thread.start()

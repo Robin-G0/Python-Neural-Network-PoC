@@ -1,4 +1,4 @@
-EQUAL DATASET SMALL 17k
+EQUAL DATASET SMALL 17k [[CURRENTLY IN USE]]
 
 50 epochs
 'lr_strategy': "cosine_annealing_lr",
@@ -7,11 +7,19 @@ EQUAL DATASET SMALL 17k
     'min_lr': 0.000001,
     'step_size': 5
 }
-Overall Accuracy: 63.01%
+    one line
+    Overall Accuracy: 63.02%
+    --- Network Accuracy ---
+    Network 1 Accuracy: 63.02% (Tests: 41078)
+    Network 2 Accuracy: 100.00% (Tests: 14972)
 
---- Network Accuracy ---
-Network 1 Accuracy: 63.01% (Tests: 41078)
-Network 2 Accuracy: 100.00% (Tests: 14972)
+    balanced.txt
+    Overall Accuracy: 63.01%
+    --- Network Accuracy ---
+    Network 1 Accuracy: 63.01% (Tests: 41078)
+    Network 2 Accuracy: 100.00% (Tests: 14972)
+
+    balanced equal :  74.53%
 
 Trained again with ALL colorless 40k :
 

@@ -1,0 +1,33 @@
+{ "units": 64, "activation": "relu" },
+{ "units": 32, "activation": "relu" },
+{ "units": 16, "activation": "relu" },
+{ "units": 1, "activation": "sigmoid" }
+
+20 epoch cosine
+0.004 -> 0.0001
+batch_size: 500
+
+Overall Accuracy: 61.71%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 76.04% (Tests: 41078)
+Network 2 Accuracy: 71.04% (Tests: 20323)
+Network 3 Accuracy: 100.00% (Tests: 14438)
+
+-------------------------------------------------------------------
+
+{ "units": 64, "activation": "relu" },
+{ "units": 32, "activation": "relu" },
+{ "units": 16, "activation": "relu" },
+{ "units": 1, "activation": "sigmoid" }
+
+50 epoch cosine
+0.004 -> 0.00001
+batch_size: 50
+
+Overall Accuracy: 61.70%
+
+--- Network Accuracy ---
+Network 1 Accuracy: 76.04% (Tests: 41078)
+Network 2 Accuracy: 71.02% (Tests: 20323)
+Network 3 Accuracy: 100.00% (Tests: 14433)

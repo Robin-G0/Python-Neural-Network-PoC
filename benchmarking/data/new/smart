@@ -1,0 +1,17 @@
+dropout 0.5
+100 epoch
+512 batch size
+'lr_strategy': "cosine_annealing_lr",
+'lr_params': {
+    'max_lr': 0.005,
+    'min_lr': 0.000001,
+    'step_size': 5
+}
+{ "units": 128, "activation": "relu" },
+{ "units": 256, "activation": "relu" },
+{ "units": 256, "activation": "relu" },
+{ "units": 128, "activation": "relu" },
+{ "units": 64, "activation": "relu" },
+{ "units": 16, "activation": "relu" },
+{ "units": 1, "activation": "sigmoid" }
+

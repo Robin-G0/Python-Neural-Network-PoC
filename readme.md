@@ -3,9 +3,10 @@
 ## How We Built It
 
 This project leverages NumPy to create, train, and evaluate neural networks based on customizable configuration files. These files define:
-- Network layers
+- Network architectures
 - Input formats
-- Training strategies
+- Network layers and sizes
+- Activation functions
 
 We use a combination of multiple neural networks to make predictions to be able to compare the results and choose the best model for each step of the training process. We are also able to train multiple models at the same time or a specific model at a time.
 

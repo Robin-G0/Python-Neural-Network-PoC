@@ -57,7 +57,7 @@ We benchmarked the project by comparing CPU-only vs GPU-accelerated runs.
 ### Example Graphs:
 
 ![Training Curve](benchmarking/img/new_archi.png)
-![Learning Rate Comparison](benchmarking/img/Balanced_new_cycle.png)
+![Loss Variations](benchmarking/img/Balanced_new_cycle.png)
 
 ---
 

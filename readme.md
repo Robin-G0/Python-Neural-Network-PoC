@@ -1,4 +1,4 @@
-# Neural Network with NumPy - Project Overview
+# Neural Network with NumPy - PoC Overview
 
 ## How We Built It
 
